@@ -2,6 +2,67 @@ function hadk() { source $HOME/.hadk.env; echo "Env setup for $DEVICE"; }
 hadk
 alias mersdkubu="ubu-chroot -r $MER_ROOT/sdks/ubuntu"
 PS1="MerSDK $PS1"
+TMPDIR=$MER_ROOT/tmp
+
+function setup_ubuntuchroot {
+  TARBALL=ubuntu-trusty-android-rootfs.tar.bz2
+  curl -O http://img.merproject.org/images/mer-hybris/ubu/$TARBALL
+  UBUNTU_CHROOT=$MER_ROOT/sdks/ubuntu
+  sudo rm -rf $UBUNTU_CHROOT
+  sudo mkdir -p $UBUNTU_CHROOT
+  sudo tar --numeric-owner -xvjf $TARBALL -C $UBUNTU_CHROOT
+}
+
+function setup_scratchbox {
+  mkdir -p $TMPDIR
+  cd $TMPDIR
+
+  SFE_SB2_TARGET=$MER_ROOT/targets/$VENDOR-$DEVICE-$PORT_ARCH
+  TARBALL_URL=http://releases.sailfishos.org/sdk/latest/targets/targets.json
+  TARBALL=$(curl $TARBALL_URL | grep "$PORT_ARCH.tar.bz2" | cut -d\" -f4)
+
+  echo "Downloading: " $TARBALL
+  rm $(basename $TARBALL)
+  curl -O $TARBALL
+
+  sudo rm -rf $SFE_SB2_TARGET
+  sudo mkdir -p $SFE_SB2_TARGET
+  sudo tar --numeric-owner -pxjf $(basename $TARBALL) -C $SFE_SB2_TARGET
+
+  sudo chown -R $USER $SFE_SB2_TARGET
+
+  cd $SFE_SB2_TARGET
+  grep :$(id -u): /etc/passwd >> etc/passwd
+  grep :$(id -g): /etc/group >> etc/group
+
+  sb2-init -d -L "--sysroot=/" -C "--sysroot=/" -c /usr/bin/qemu-arm-dynamic -m sdk-build -n -N -t / $VENDOR-$DEVICE-$PORT_ARCH /opt/cross/bin/$PORT_ARCH-meego-linux-gnueabi-gcc
+
+  sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -m sdk-install -R rpm --rebuilddb
+  sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -m sdk-install -R zypper ar -G http://repo.merproject.org/releases/mer-tools/rolling/builds/$PORT_ARCH/packages/ mer-tools-rolling
+  sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -m sdk-install -R zypper ref --force
+}
+
+function test_scratchbox {
+  mkdir -p $TMPDIR
+  cd $TMPDIR
+
+  cat > main.c << EOF
+#include <stdlib.h>
+#include <stdio.h>
+int main(void) {
+printf("Scratchbox, works!\n");
+return EXIT_SUCCESS;
+}
+EOF
+
+  sb2 -t $VENDOR-$DEVICE-$PORT_ARCH gcc main.c -o test
+  sb2 -t $VENDOR-$DEVICE-$PORT_ARCH ./test
+}
+
+function build_hybrishal {
+  cd $ANDROID_ROOT
+  ubu-chroot -r $MER_ROOT/sdks/ubuntu /bin/bash -c "echo Building hybris-hal && cd $HOME/mer/android/droid && source build/envsetup.sh && breakfast $DEVICE && make -j8 hybris-hal"
+}
 
 function build_audioflingerglue {
   ubu-chroot -r $MER_ROOT/sdks/ubuntu /bin/bash -c "echo Building audioflingerglue && cd $MER_ROOT/android/droid && source build/envsetup.sh && breakfast $DEVICE && make -j8 libaudioflingerglue miniafservice"
@@ -71,10 +132,8 @@ function build_gstdroid {
   sb2 -t $VENDOR-$DEVICE-armv7hl -R -msdk-install zypper ref
 }
 
-
 function build_packages {
   cd $ANDROID_ROOT
-  ubu-chroot -r $MER_ROOT/sdks/ubuntu /bin/bash -c "echo Building hybris-hal && cd $HOME/mer/android/droid && source build/envsetup.sh && breakfast $DEVICE && make -j8 hybris-hal"
   rpm/dhd/helpers/build_packages.sh
 }
 
@@ -90,10 +149,10 @@ $ANDROID_ROOT/hybris/droid-configs/installroot/usr/share/kickstarts/$KS > tmp/$K
   hybris/droid-configs/droid-configs-device/helpers/process_patterns.sh
 
   #Adding our OBS repo
-#  MOBS_URI="http://repo.merproject.org/obs"
-#  HA_REPO="repo --name=adaptation0-$DEVICE-@RELEASE@"
-#  HA_REPO1="repo --name=adaptation1-$DEVICE-@RELEASE@ --baseurl=$MOBS_URI/nemo:/devel:/hw:/$VENDOR:/$DEVICE/sailfish_latest_@ARCH@/"
-#  sed -i -e "/^$HA_REPO.*$/a$HA_REPO1" tmp/Jolla-@RELEASE@-$DEVICE-@ARCH@.ks
+  MOBS_URI="http://repo.merproject.org/obs"
+  HA_REPO="repo --name=adaptation0-$DEVICE-@RELEASE@"
+  HA_REPO1="repo --name=adaptation1-$DEVICE-@RELEASE@ --baseurl=$MOBS_URI/nemo:/devel:/hw:/$VENDOR:/$DEVICE/sailfish_latest_@ARCH@/"
+  sed -i -e "/^$HA_REPO.*$/a$HA_REPO1" tmp/Jolla-@RELEASE@-$DEVICE-@ARCH@.ks
 }
 
 function upload_packages {
@@ -108,7 +167,7 @@ function upload_packages {
 }
 
 function build_rootfs {
-  RELEASE=2.0.2.48
+  RELEASE=2.0.2.51
   EXTRA_NAME=-dolphin
   sudo mic create fs --arch $PORT_ARCH --debug --tokenmap=ARCH:$PORT_ARCH,RELEASE:$RELEASE,EXTRA_NAME:$EXTRA_NAME --record-pkgs=name,url --outdir=sfe-$DEVICE-$RELEASE$EXTRA_NAME --pack-to=sfe-$DEVICE-$RELEASE$EXTRA_NAME.tar.bz2 $ANDROID_ROOT/tmp/Jolla-@RELEASE@-$DEVICE-@ARCH@.ks
 }
