@@ -105,6 +105,7 @@ function build_audioflingerglue {
   mkdir -p $MER_ROOT/devel/mer-hybris
   cd $MER_ROOT/devel/mer-hybris
   PKG=pulseaudio-modules-droid-glue
+  rm -rf $PKG
   git clone https://github.com/mer-hybris/pulseaudio-modules-droid-glue.git
   cd $PKG
   curl http://pastebin.com/raw/H8U5nSNm -o pulseaudio-modules-droid-glue.patch
@@ -138,6 +139,7 @@ function build_gstdroid {
   mkdir -p $MER_ROOT/devel/mer-hybris
   cd $MER_ROOT/devel/mer-hybris
   PKG=gst-droid
+  rm -rf $PKG
   git clone https://github.com/sailfishos/$PKG.git -b master
   cd $PKG
 
