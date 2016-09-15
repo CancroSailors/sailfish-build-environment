@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <project name="CyanogenMod/android_device_qcom_common" path="device/qcom/common" remote="github" revision="cm-12.1" />
+  <project name="TheMuppets/proprietary_vendor_xiaomi" path="vendor/xiaomi" revision="cm-12.1"/>
+
+  <project name="saidinesh5/android_device_xiaomi_cancro" path="device/xiaomi/cancro" remote="github" revision="cm-12.1" />
+  <project name="saidinesh5/android_kernel_xiaomi_cancro" path="kernel/xiaomi/cancro" remote="github" revision="cm-12.1" />
+
+  <project path="hybris/droid-hal-version-cancro" name="saidinesh5/droid-hal-version-cancro" revision="master" />
+  <project path="hybris/droid-configs" name="saidinesh5/droid-config-cancro" revision="master" />
+  <project path="rpm/" name="saidinesh5/droid-hal-cancro" revision="master" />
+</manifest>
+

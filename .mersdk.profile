@@ -2,7 +2,6 @@ function hadk() { source $HOME/.hadk.env; echo "Env setup for $DEVICE"; }
 hadk
 alias mersdkubu="ubu-chroot -r $MER_ROOT/sdks/ubuntu"
 PS1="MerSDK $PS1"
-TMPDIR=$MER_ROOT/tmp
 
 function setup_ubuntuchroot {
   TARBALL=ubuntu-trusty-android-rootfs.tar.bz2
@@ -14,8 +13,8 @@ function setup_ubuntuchroot {
 }
 
 function setup_scratchbox {
-  mkdir -p $TMPDIR
-  cd $TMPDIR
+  mkdir -p $MER_TMPDIR
+  cd $MER_TMPDIR
 
   SFE_SB2_TARGET=$MER_ROOT/targets/$VENDOR-$DEVICE-$PORT_ARCH
   TARBALL_URL=http://releases.sailfishos.org/sdk/latest/targets/targets.json
@@ -43,8 +42,8 @@ function setup_scratchbox {
 }
 
 function test_scratchbox {
-  mkdir -p $TMPDIR
-  cd $TMPDIR
+  mkdir -p $MER_TMPDIR
+  cd $MER_TMPDIR
 
   cat > main.c << EOF
 #include <stdlib.h>
@@ -61,11 +60,16 @@ EOF
 
 function build_hybrishal {
   cd $ANDROID_ROOT
-  ubu-chroot -r $MER_ROOT/sdks/ubuntu /bin/bash -c "echo Building hybris-hal && cd $HOME/mer/android/droid && source build/envsetup.sh && breakfast $DEVICE && make -j8 hybris-hal"
+  ubu-chroot -r $MER_ROOT/sdks/ubuntu /bin/bash -c "echo Building hybris-hal && cd $ANDROID_ROOT && source build/envsetup.sh && breakfast $DEVICE && make -j8 hybris-hal"
+}
+
+function build_packages {
+  cd $ANDROID_ROOT
+  rpm/dhd/helpers/build_packages.sh
 }
 
 function build_audioflingerglue {
-  ubu-chroot -r $MER_ROOT/sdks/ubuntu /bin/bash -c "echo Building audioflingerglue && cd $MER_ROOT/android/droid && source build/envsetup.sh && breakfast $DEVICE && make -j8 libaudioflingerglue miniafservice"
+  ubu-chroot -r $MER_ROOT/sdks/ubuntu /bin/bash -c "echo Building audioflingerglue && cd $ANDROID_ROOT && source build/envsetup.sh && breakfast $DEVICE && make -j8 libaudioflingerglue miniafservice"
 
   cd $ANDROID_ROOT
 
@@ -132,11 +136,6 @@ function build_gstdroid {
   sb2 -t $VENDOR-$DEVICE-armv7hl -R -msdk-install zypper ref
 }
 
-function build_packages {
-  cd $ANDROID_ROOT
-  rpm/dhd/helpers/build_packages.sh
-}
-
 function generate_kickstart {
   cd $ANDROID_ROOT
   mkdir -p tmp
@@ -156,18 +155,25 @@ $ANDROID_ROOT/hybris/droid-configs/installroot/usr/share/kickstarts/$KS > tmp/$K
 }
 
 function upload_packages {
-  cd $MER_ROOT/OBS/nemo\:devel\:hw\:xiaomi\:cancro/droid-hal-cancro/
+  #Upload gstdroid and droid-hal* to OBS
+  cd $MER_ROOT/OBS/nemo\:devel\:hw\:$VENDOR\:$DEVICE/droid-hal-$DEVICE/
   osc up
   rm *.rpm
-  cp $ANDROID_ROOT/droid-local-repo/cancro/droid-hal-cancro* .
-  cp $ANDROID_ROOT/droid-local-repo/cancro/audioflingerglue* .
-  cp $ANDROID_ROOT/droid-local-repo/cancro/droidmedia* .
+  cp $ANDROID_ROOT/droid-local-repo/$DEVICE/droid-hal-$DEVICE* .
+  cp $ANDROID_ROOT/droid-local-repo/$DEVICE/audioflingerglue* .
+  cp $ANDROID_ROOT/droid-local-repo/$DEVICE/droidmedia* .
   osc ar
   osc ci  
 }
 
 function build_rootfs {
   RELEASE=2.0.2.51
-  EXTRA_NAME=-dolphin
+  if [[ -z "$1" ]]
+  then
+    EXTRA_NAME=-test
+  else
+    EXTRA_NAME=-$1
+  fi
+  echo Building Image: $EXTRA_NAME
   sudo mic create fs --arch $PORT_ARCH --debug --tokenmap=ARCH:$PORT_ARCH,RELEASE:$RELEASE,EXTRA_NAME:$EXTRA_NAME --record-pkgs=name,url --outdir=sfe-$DEVICE-$RELEASE$EXTRA_NAME --pack-to=sfe-$DEVICE-$RELEASE$EXTRA_NAME.tar.bz2 $ANDROID_ROOT/tmp/Jolla-@RELEASE@-$DEVICE-@ARCH@.ks
 }
