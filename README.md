@@ -16,6 +16,6 @@ So, Backup your ~/.hadk.env , ~/.mersdk.profile, ~/.mersdkubu.profile, if you al
 ### More info:
 
 * [Sailfish HADK](https://sailfishos.org/develop/hadk/)
-* [(Sailfish HADK FAQ](http://piratepad.net/hadk-faq-v2)
+* [Sailfish HADK FAQ](http://piratepad.net/hadk-faq-v2)
 
 Thanks a ton to #saiflishos-porters on freenode
