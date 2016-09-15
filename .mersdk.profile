@@ -12,6 +12,19 @@ function setup_ubuntuchroot {
   sudo tar --numeric-owner -xvjf $TARBALL -C $UBUNTU_CHROOT
 }
 
+function setup_repo {
+  mkdir -p $ANDROID_ROOT
+  sudo chown -R $USER $ANDROID_ROOT
+  ubu-chroot -r $MER_ROOT/sdks/ubuntu /bin/bash -c "echo Installing repo && curl -O https://storage.googleapis.com/git-repo-downloads/repo && chmod a+x repo && sudo mv repo /usr/bin"
+}
+
+function fetch_sources {
+  cd $ANDROID_ROOT
+
+  ubu-chroot -r $MER_ROOT/sdks/ubuntu /bin/bash -c "echo Initializing repo && cd $ANDROID_ROOT && repo init -u git://github.com/mer-hybris/android.git -b $HYBRIS_BRANCH"
+  ubu-chroot -r $MER_ROOT/sdks/ubuntu /bin/bash -c "echo Syncing sources && cd $ANDROID_ROOT && repo sync --fetch-submodules"
+}
+
 function setup_scratchbox {
   mkdir -p $MER_TMPDIR
   cd $MER_TMPDIR
@@ -177,3 +190,24 @@ function build_rootfs {
   echo Building Image: $EXTRA_NAME
   sudo mic create fs --arch $PORT_ARCH --debug --tokenmap=ARCH:$PORT_ARCH,RELEASE:$RELEASE,EXTRA_NAME:$EXTRA_NAME --record-pkgs=name,url --outdir=sfe-$DEVICE-$RELEASE$EXTRA_NAME --pack-to=sfe-$DEVICE-$RELEASE$EXTRA_NAME.tar.bz2 $ANDROID_ROOT/tmp/Jolla-@RELEASE@-$DEVICE-@ARCH@.ks
 }
+
+
+function mer_man {
+  echo "Welcome to MerSDK"
+  echo "Additional convenience functions defined here are:"
+  echo "  1) setup_ubuntuchroot: set up ubuntu chroot for painless building of android"
+  echo "  2) setup_repo: sets up repo tool in ubuntu chroot to fetch android/mer sources"
+  echo "  3) fetch_sources: fetch android/mer sources"
+  echo "  4) setup_scratchbox: sets up a cross compilation toolchain to build mer packages"
+  echo "  5) test_scratchbox: tests the scratchbox toolchain."
+  echo "  6) build_hybrishal: builds the hybris-hal needed to boot sailfishos for $DEVICE"
+  echo "  7) build_packages: builds packages needed to build the sailfishos rootfs of $DEVICE"
+  echo "  8) build_audioflingerglue: builds audioflingerglue packages for audio calls"
+  echo "  9) build_gstdroid: builds gstdroid for audio/video/camera support"
+  echo "  9) upload_packages: uploads droid-hal*, audioflingerglue, gstdroid* packages to OBS"
+  echo "  10) generate_kickstart: generates a kickstart file needed to build rootfs"
+  echo "  11) build_rootfs [releasename]: builds a sailfishos installer zip for $DEVICE"
+  echo "  12) mer_man: Show this help"
+}
+
+mer_man
