@@ -163,13 +163,16 @@ $ANDROID_ROOT/hybris/droid-configs/installroot/usr/share/kickstarts/$KS > $ANDRO
 
   hybris/droid-configs/droid-configs-device/helpers/process_patterns.sh
 
-  #Adding our OBS repo
-  MOBS_URI="http://repo.merproject.org/obs"
-  HA_REPO="repo --name=adaptation0-$DEVICE-@RELEASE@"
-  HA_REPO1="repo --name=adaptation1-$DEVICE-@RELEASE@ --baseurl=$MOBS_URI/nemo:/devel:/hw:/$VENDOR:/$DEVICE/sailfish_latest_@ARCH@/"
-  sed -i -e "/^$HA_REPO.*$/a$HA_REPO1" $ANDROID_ROOT/tmp/$KS
 
-  sed -i -e "s|@Jolla Configuration cancro|@Jolla Configuration cancro\njolla-email\nsailfish-weather\njolla-calculator\njolla-notes\njolla-calendar\nsailfish-office\nharbour-warehouse|"  $ANDROID_ROOT/tmp/$KS
+  if [ $1 = "obs" ]; then
+    #Adding our OBS repo
+    MOBS_URI="http://repo.merproject.org/obs"
+    HA_REPO="repo --name=adaptation0-$DEVICE-@RELEASE@"
+    HA_REPO1="repo --name=adaptation1-$DEVICE-@RELEASE@ --baseurl=$MOBS_URI/nemo:/devel:/hw:/$VENDOR:/$DEVICE/sailfish_latest_@ARCH@/"
+    sed -i -e "/^$HA_REPO.*$/a$HA_REPO1" $ANDROID_ROOT/tmp/$KS
+  fi
+
+    sed -i -e "s|@Jolla Configuration cancro|@Jolla Configuration cancro\njolla-email\nsailfish-weather\njolla-calculator\njolla-notes\njolla-calendar\nsailfish-office\nharbour-warehouse|"  $ANDROID_ROOT/tmp/$KS
 }
 
 function upload_packages {
@@ -210,7 +213,7 @@ function mer_man {
   echo "  8) build_audioflingerglue: builds audioflingerglue packages for audio calls"
   echo "  9) build_gstdroid: builds gstdroid for audio/video/camera support"
   echo "  9) upload_packages: uploads droid-hal*, audioflingerglue, gstdroid* packages to OBS"
-  echo "  10) generate_kickstart: generates a kickstart file needed to build rootfs"
+  echo "  10) generate_kickstart [obs]: generates a kickstart file needed to build rootfs. specifying obs will add the obs repo"
   echo "  11) build_rootfs [releasename]: builds a sailfishos installer zip for $DEVICE"
   echo "  12) mer_man: Show this help"
 }
