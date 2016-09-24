@@ -92,10 +92,10 @@ function build_audioflingerglue {
   chmod +x pack_source_af.sh
   ./pack_source_af.sh
 
-  mb2 -s audioflingerglue.spec -t $VENDOR-$DEVICE-armv7hl build
+  mb2 -s audioflingerglue.spec -t $VENDOR-$DEVICE-$PORT_ARCH build
   mv RPMS/*.rpm $ANDROID_ROOT/droid-local-repo/$DEVICE/
   createrepo $ANDROID_ROOT/droid-local-repo/$DEVICE
-  sb2 -t $VENDOR-$DEVICE-armv7hl -R -msdk-install zypper ref 
+  sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -R -msdk-install zypper ref
 
   #Removing conflicting modules
   rm out/target/product/$DEVICE/system/bin/miniafservice
@@ -111,12 +111,12 @@ function build_audioflingerglue {
   curl http://pastebin.com/raw/H8U5nSNm -o pulseaudio-modules-droid-glue.patch
   patch -p1 < pulseaudio-modules-droid-glue.patch
     
-  mb2 -s rpm/$PKG.spec -t $VENDOR-$DEVICE-armv7hl build
+  mb2 -s rpm/$PKG.spec -t $VENDOR-$DEVICE-$PORT_ARCH build
   mkdir -p $ANDROID_ROOT/droid-local-repo/$DEVICE/$PKG/
   rm -f $ANDROID_ROOT/droid-local-repo/$DEVICE/$PKG/*.rpm
   mv RPMS/*.rpm $ANDROID_ROOT/droid-local-repo/$DEVICE/$PKG
   createrepo $ANDROID_ROOT/droid-local-repo/$DEVICE
-  sb2 -t $VENDOR-$DEVICE-armv7hl -R -msdk-install zypper ref
+  sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -R -msdk-install zypper ref
 }
 
 function build_gstdroid {
@@ -127,10 +127,10 @@ function build_gstdroid {
   cd $ANDROID_ROOT
   chmod +x pack_source_droidmedia.sh
   ./pack_source_droidmedia.sh
-  mb2 -s droidmedia.spec -t $VENDOR-$DEVICE-armv7hl build
+  mb2 -s droidmedia.spec -t $VENDOR-$DEVICE-$PORT_ARCH build
   mv RPMS/*.rpm $ANDROID_ROOT/droid-local-repo/$DEVICE/
   createrepo $ANDROID_ROOT/droid-local-repo/$DEVICE
-  sb2 -t $VENDOR-$DEVICE-armv7hl -R -msdk-install zypper ref
+  sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -R -msdk-install zypper ref
 
   rm out/target/product/$DEVICE/system/bin/minimediaservice
   rm out/target/product/$DEVICE/system/bin/minisfservice
@@ -143,12 +143,12 @@ function build_gstdroid {
   git clone https://github.com/sailfishos/$PKG.git -b master
   cd $PKG
 
-  mb2 -s rpm/$PKG.spec -t $VENDOR-$DEVICE-armv7hl build
+  mb2 -s rpm/$PKG.spec -t $VENDOR-$DEVICE-$PORT_ARCH build
   mkdir -p $ANDROID_ROOT/droid-local-repo/$DEVICE/$PKG/
   rm -f $ANDROID_ROOT/droid-local-repo/$DEVICE/$PKG/*.rpm
   mv RPMS/*.rpm $ANDROID_ROOT/droid-local-repo/$DEVICE/$PKG
   createrepo $ANDROID_ROOT/droid-local-repo/$DEVICE
-  sb2 -t $VENDOR-$DEVICE-armv7hl -R -msdk-install zypper ref
+  sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -R -msdk-install zypper ref
 }
 
 function generate_kickstart {
@@ -158,7 +158,7 @@ function generate_kickstart {
   KS="Jolla-@RELEASE@-$DEVICE-@ARCH@.ks"
   #Older version
   #sed -e "s|^$HA_REPO.*$|$HA_REPO --baseurl=file://$ANDROID_ROOT/droid-local-repo/$DEVICE|" $ANDROID_ROOT/hybris/droid-configs/installroot/usr/share/kickstarts/$KS > $ANDROID_ROOT/tmp/$KS
-  sed -e "s|^$HA_REPO.*$|$HA_REPO --baseurl=file://$ANDROID_ROOT/droid-local-repo/$DEVICE|;s|^repo --name=jolla-@RELEASE@.*|& \nrepo --name=common --baseurl=http://repo.merproject.org/obs/nemo:/testing:/hw:/common/sailfish_latest_armv7hl\nrepo --name=openrepos-basil --baseurl=https://sailfish.openrepos.net/basil/personal/main/|" \
+  sed -e "s|^$HA_REPO.*$|$HA_REPO --baseurl=file://$ANDROID_ROOT/droid-local-repo/$DEVICE|;s|^repo --name=jolla-@RELEASE@.*|& \nrepo --name=common --baseurl=http://repo.merproject.org/obs/nemo:/testing:/hw:/common/sailfish_latest_$PORT_ARCH\nrepo --name=openrepos-basil --baseurl=https://sailfish.openrepos.net/basil/personal/main/|" \
 $ANDROID_ROOT/hybris/droid-configs/installroot/usr/share/kickstarts/$KS > $ANDROID_ROOT/tmp/$KS
 
   hybris/droid-configs/droid-configs-device/helpers/process_patterns.sh
