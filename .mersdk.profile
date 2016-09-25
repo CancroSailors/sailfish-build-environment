@@ -76,6 +76,45 @@ function build_hybrishal {
   ubu-chroot -r $MER_ROOT/sdks/ubuntu /bin/bash -c "echo Building hybris-hal && cd $ANDROID_ROOT && source build/envsetup.sh && breakfast $DEVICE && make -j8 hybris-hal"
 }
 
+function build_package {
+  PKG_PATH="$1"
+  shift
+
+  [ -z "$PKG_PATH" ] && echo "Please enter the path to the pkg source" && return
+
+  pushd $PKG_PATH
+  PKG="$(basename ${PWD})"
+
+  if [ $? == "0" ]; then
+    SPECS="$*"
+    if [ -z "$SPECS" ]; then
+      echo "No spec files for package building specified, building all I can find."
+      SPECS="rpm/*.spec"
+    fi
+
+    for SPEC in $SPECS ; do
+      echo "Building $SPEC"
+      mb2 -s $SPEC -t $VENDOR-$DEVICE-$PORT_ARCH build || echo "Build failed" && return
+    done
+    echo "Building successful, adding packages to repo"
+    mkdir -p "$ANDROID_ROOT/droid-local-repo/$DEVICE/$PKG"
+    rm -f "$ANDROID_ROOT/droid-local-repo/$DEVICE/$PKG/"*.rpm
+    mv RPMS/*.rpm "$ANDROID_ROOT/droid-local-repo/$DEVICE/$PKG"
+    createrepo "$ANDROID_ROOT/droid-local-repo/$DEVICE"
+    sb2 -t $VENDOR-$DEVICE-$ARCH -R -msdk-install zypper ref
+    echo "Building of $PKG finished successfully"
+
+    echo "Building successful, adding packages to repo"
+    mkdir -p "$ANDROID_ROOT/droid-local-repo/$DEVICE/$PKG"
+    rm -f "$ANDROID_ROOT/droid-local-repo/$DEVICE/$PKG/"*.rpm
+    mv RPMS/*.rpm "$ANDROID_ROOT/droid-local-repo/$DEVICE/$PKG"
+    createrepo "$ANDROID_ROOT/droid-local-repo/$DEVICE"
+    sb2 -t $VENDOR-$DEVICE-$ARCH -R -msdk-install zypper ref
+    echo "Building of $PKG finished successfully"
+  fi
+  popd
+}
+
 function build_packages {
   cd $ANDROID_ROOT
   rpm/dhd/helpers/build_packages.sh
@@ -209,13 +248,14 @@ function mer_man {
   echo "  4) setup_scratchbox: sets up a cross compilation toolchain to build mer packages"
   echo "  5) test_scratchbox: tests the scratchbox toolchain."
   echo "  6) build_hybrishal: builds the hybris-hal needed to boot sailfishos for $DEVICE"
-  echo "  7) build_packages: builds packages needed to build the sailfishos rootfs of $DEVICE"
-  echo "  8) build_audioflingerglue: builds audioflingerglue packages for audio calls"
-  echo "  9) build_gstdroid: builds gstdroid for audio/video/camera support"
-  echo "  9) upload_packages: uploads droid-hal*, audioflingerglue, gstdroid* packages to OBS"
-  echo "  10) generate_kickstart [obs]: generates a kickstart file needed to build rootfs. specifying obs will add the obs repo"
-  echo "  11) build_rootfs [releasename]: builds a sailfishos installer zip for $DEVICE"
-  echo "  12) mer_man: Show this help"
+  echo "  7) build_package PKG_PATH [spec files]: builds package at path specified by the spec files"
+  echo "  8) build_packages: builds packages needed to build the sailfishos rootfs of $DEVICE"
+  echo "  9) build_audioflingerglue: builds audioflingerglue packages for audio calls"
+  echo "  10) build_gstdroid: builds gstdroid for audio/video/camera support"
+  echo "  11) upload_packages: uploads droid-hal*, audioflingerglue, gstdroid* packages to OBS"
+  echo "  12) generate_kickstart [obs]: generates a kickstart file needed to build rootfs. specifying obs will add the obs repo"
+  echo "  13) build_rootfs [releasename]: builds a sailfishos installer zip for $DEVICE"
+  echo "  14) mer_man: Show this help"
 }
 
 mer_man
