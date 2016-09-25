@@ -3,6 +3,9 @@ hadk
 alias mersdkubu="ubu-chroot -r $MER_ROOT/sdks/ubuntu"
 PS1="MerSDK $PS1"
 
+#TODO add error checks
+#TODO use pushd and popd to keep track of user's original directory
+
 function setup_ubuntuchroot {
   TARBALL=ubuntu-trusty-android-rootfs.tar.bz2
   curl -O http://img.merproject.org/images/mer-hybris/ubu/$TARBALL
@@ -238,6 +241,11 @@ function build_rootfs {
   sudo mic create fs --arch $PORT_ARCH --debug --tokenmap=ARCH:$PORT_ARCH,RELEASE:$RELEASE,EXTRA_NAME:$EXTRA_NAME --record-pkgs=name,url --outdir=sfe-$DEVICE-$RELEASE$EXTRA_NAME --pack-to=sfe-$DEVICE-$RELEASE$EXTRA_NAME.tar.bz2 $ANDROID_ROOT/tmp/Jolla-@RELEASE@-$DEVICE-@ARCH@.ks
 }
 
+function serve_repo {
+  pushd $ANDROID_ROOT/droid-local-repo/$DEVICE/
+  python -m SimpleHTTPServer
+  popd
+}
 
 function mer_man {
   echo "Welcome to MerSDK"
@@ -255,7 +263,8 @@ function mer_man {
   echo "  11) upload_packages: uploads droid-hal*, audioflingerglue, gstdroid* packages to OBS"
   echo "  12) generate_kickstart [obs]: generates a kickstart file needed to build rootfs. specifying obs will add the obs repo"
   echo "  13) build_rootfs [releasename]: builds a sailfishos installer zip for $DEVICE"
-  echo "  14) mer_man: Show this help"
+  echo "  14) serve_repo : starts a http server on local host. (which you can easily add to your device as ssu ar http://<ipaddr>:9000)"
+  echo "  15) mer_man: Show this help"
 }
 
 mer_man
