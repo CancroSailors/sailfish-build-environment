@@ -44,7 +44,7 @@ The Additional bash functions it provides are:
   11) upload_packages: uploads droid-hal*, audioflingerglue, gstdroid* packages to OBS.
   12) generate_kickstart [obs]: generates a kickstart file needed to build rootfs. specifying obs will add the obs repo.
   13) build_rootfs [releasename]: builds a sailfishos installer zip for $DEVICE. Default release name is test.
-  14) serve_repo : starts a http server in /path/to/droid-local-repo. (which you can "ssu ar http://<ipaddr>:9000" on device)
+  14) serve_repo : starts a http server in /path/to/droid-local-repo. (which you can "ssu ar http://<ipaddr>:8000" on device)
   15) mer_man : show ths list of available functions
 ```
 
