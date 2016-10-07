@@ -85,11 +85,7 @@ EOF
 }
 
 function build_hybrishal {
-  pushd $ANDROID_ROOT
-
   ubu-chroot -r $MER_ROOT/sdks/ubuntu /bin/bash -c "echo Building hybris-hal && cd $ANDROID_ROOT && source build/envsetup.sh && breakfast $DEVICE && make -j8 hybris-hal"
-
-  popd
 }
 
 function build_package {
@@ -261,7 +257,7 @@ function upload_packages {
 }
 
 function build_rootfs {
-  RELEASE=2.0.2.51
+  RELEASE=$SAILFISH_VERSION
   if [[ -z "$1" ]]
   then
     EXTRA_NAME=-test
