@@ -5,7 +5,14 @@ alias mersdkubu="ubu-chroot -r $MER_ROOT/sdks/ubuntu"
 PS1="MerSDK $PS1"
 
 #TODO add error checks
-#TODO use pushd and popd to keep track of user's original directory
+
+pushd () {
+  command pushd "$@" > /dev/null
+}
+
+popd () {
+  command popd "$@" > /dev/null
+}
 
 function setup_ubuntuchroot {
   TARBALL=ubuntu-trusty-android-rootfs.tar.bz2
@@ -23,15 +30,13 @@ function setup_repo {
 }
 
 function fetch_sources {
-  cd $ANDROID_ROOT
-
   ubu-chroot -r $MER_ROOT/sdks/ubuntu /bin/bash -c "echo Initializing repo && cd $ANDROID_ROOT && repo init -u git://github.com/mer-hybris/android.git -b $HYBRIS_BRANCH"
   ubu-chroot -r $MER_ROOT/sdks/ubuntu /bin/bash -c "echo Syncing sources && cd $ANDROID_ROOT && repo sync --fetch-submodules"
 }
 
 function setup_scratchbox {
   mkdir -p $MER_TMPDIR
-  cd $MER_TMPDIR
+  pushd $MER_TMPDIR
 
   SFE_SB2_TARGET=$MER_ROOT/targets/$VENDOR-$DEVICE-$PORT_ARCH
   TARBALL_URL=http://releases.sailfishos.org/sdk/latest/targets/targets.json
@@ -56,11 +61,13 @@ function setup_scratchbox {
   sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -m sdk-install -R rpm --rebuilddb
   sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -m sdk-install -R zypper ar -G http://repo.merproject.org/releases/mer-tools/rolling/builds/$PORT_ARCH/packages/ mer-tools-rolling
   sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -m sdk-install -R zypper ref --force
+
+  popd
 }
 
 function test_scratchbox {
   mkdir -p $MER_TMPDIR
-  cd $MER_TMPDIR
+  pushd $MER_TMPDIR
 
   cat > main.c << EOF
 #include <stdlib.h>
@@ -73,11 +80,16 @@ EOF
 
   sb2 -t $VENDOR-$DEVICE-$PORT_ARCH gcc main.c -o test
   sb2 -t $VENDOR-$DEVICE-$PORT_ARCH ./test
+
+  popd
 }
 
 function build_hybrishal {
-  cd $ANDROID_ROOT
+  pushd $ANDROID_ROOT
+
   ubu-chroot -r $MER_ROOT/sdks/ubuntu /bin/bash -c "echo Building hybris-hal && cd $ANDROID_ROOT && source build/envsetup.sh && breakfast $DEVICE && make -j8 hybris-hal"
+
+  popd
 }
 
 function build_package {
@@ -120,14 +132,17 @@ function build_package {
 }
 
 function build_packages {
-  cd $ANDROID_ROOT
+  pushd $ANDROID_ROOT
+
   rpm/dhd/helpers/build_packages.sh
+
+  popd
 }
 
 function build_audioflingerglue {
   ubu-chroot -r $MER_ROOT/sdks/ubuntu /bin/bash -c "echo Building audioflingerglue && cd $ANDROID_ROOT && source build/envsetup.sh && breakfast $DEVICE && make -j8 libaudioflingerglue miniafservice"
 
-  cd $ANDROID_ROOT
+  pushd $ANDROID_ROOT
 
   curl http://sprunge.us/OADK -o pack_source_af.sh
   curl http://sprunge.us/TEfZ -o audioflingerglue.spec
@@ -160,11 +175,13 @@ function build_audioflingerglue {
   mv RPMS/*.rpm $ANDROID_ROOT/droid-local-repo/$DEVICE/$PKG
   createrepo $ANDROID_ROOT/droid-local-repo/$DEVICE
   sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -R -msdk-install zypper ref
+
+  popd
 }
 
 function build_gstdroid {
   ubu-chroot -r $MER_ROOT/sdks/ubuntu /bin/bash -c "echo Building gstdroid && cd $MER_ROOT/android/droid && source build/envsetup.sh && breakfast $DEVICE && make -j8 libcameraservice libdroidmedia minimediaservice minisfservice"
-  cd $ANDROID_ROOT
+  pushd $ANDROID_ROOT
 
   curl http://sprunge.us/WPGA -o pack_source_droidmedia.sh
   cd $ANDROID_ROOT
@@ -192,10 +209,13 @@ function build_gstdroid {
   mv RPMS/*.rpm $ANDROID_ROOT/droid-local-repo/$DEVICE/$PKG
   createrepo $ANDROID_ROOT/droid-local-repo/$DEVICE
   sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -R -msdk-install zypper ref
+
+  popd
 }
 
 function generate_kickstart {
-  cd $ANDROID_ROOT
+  pushd $ANDROID_ROOT
+
   mkdir -p tmp
   HA_REPO="repo --name=adaptation0-$DEVICE-@RELEASE@"
   KS="Jolla-@RELEASE@-$DEVICE-@ARCH@.ks"
@@ -221,18 +241,23 @@ $ANDROID_ROOT/hybris/droid-configs/installroot/usr/share/kickstarts/$KS > $ANDRO
   sed -i '/%post$/a sed -i \"s;WantedBy;RequiredBy;g\"  \/lib\/systemd\/system\/system.mount' $ANDROID_ROOT/tmp/$KS
   sed -i '/%post$/a echo \"RequiredBy=droid-hal-init.service\" >> \/lib\/systemd\/system\/local-fs.target' $ANDROID_ROOT/tmp/$KS
   sed -i '/%post$/a echo \"[Install]\" >> \/lib\/systemd\/system\/local-fs.target' $ANDROID_ROOT/tmp/$KS
+
+  popd
 }
 
 function upload_packages {
   #Upload gstdroid and droid-hal* to OBS
-  cd $MER_ROOT/OBS/nemo\:devel\:hw\:$VENDOR\:$DEVICE/droid-hal-$DEVICE/
+  pushd $MER_ROOT/OBS/nemo\:devel\:hw\:$VENDOR\:$DEVICE/droid-hal-$DEVICE/
+
   osc up
   rm *.rpm
   cp $ANDROID_ROOT/droid-local-repo/$DEVICE/droid-hal-$DEVICE* .
   cp $ANDROID_ROOT/droid-local-repo/$DEVICE/audioflingerglue* .
   cp $ANDROID_ROOT/droid-local-repo/$DEVICE/droidmedia* .
   osc ar
-  osc ci  
+  osc ci
+
+  popd
 }
 
 function build_rootfs {
