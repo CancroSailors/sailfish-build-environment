@@ -1,5 +1,6 @@
 function hadk() { source $HOME/.hadk.env; echo "Env setup for $DEVICE"; }
 hadk
+alias croot="cd $ANDROID_ROOT"
 alias mersdkubu="ubu-chroot -r $MER_ROOT/sdks/ubuntu"
 PS1="MerSDK $PS1"
 
