@@ -40,7 +40,7 @@ function setup_scratchbox {
 
   SFE_SB2_TARGET=$MER_ROOT/targets/$VENDOR-$DEVICE-$PORT_ARCH
   TARBALL_URL=http://releases.sailfishos.org/sdk/latest/targets/targets.json
-  TARBALL=$(curl $TARBALL_URL | grep "$PORT_ARCH.tar.bz2" | cut -d\" -f4)
+  TARBALL=$(curl $TARBALL_URL | grep "$PORT_ARCH.tar.bz2" | cut -d\" -f4 | grep $PORT_ARCH | head -n 1)
 
   echo "Downloading: " $TARBALL
   rm $(basename $TARBALL)
