@@ -39,6 +39,8 @@ cd $HOME
 sudo chroot $SDK_ROOT sudo zypper ar http://repo.merproject.org/obs/home:/sledge:/mer/latest_i486/ curlfix
 sudo chroot $SDK_ROOT sudo zypper ref curlfix
 sudo chroot $SDK_ROOT sudo zypper dup --from curlfix
+sudo chroot $SDK_ROOT sudo zypper in android-tools createrepo zip
+
 
 echo "Mer SDK setup complete. You can start MerSDK by simply typing mersdk on your bash shell. Good Luck!"
 exec bash
