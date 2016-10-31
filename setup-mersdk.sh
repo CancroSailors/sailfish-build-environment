@@ -20,7 +20,7 @@ cd $MER_TMPDIR
 TARBALL=mer-i486-latest-sdk-rolling-chroot-armv7hl-sb2.tar.bz2
 curl -k -O https://img.merproject.org/images/mer-sdk/$TARBALL
 mkdir -p $MER_ROOT/sdks/sdk
-sudo tar --numeric-owner -p -xjf $$MER_TMPDIR/$TARBALL
+sudo tar --numeric-owner -p -xjf $MER_TMPDIR/$TARBALL
 echo "export MER_ROOT=$MER_ROOT" >> ~/.bashrc
 echo 'alias mersdk=$MER_ROOT/sdks/sdk/mer-sdk-chroot' >> ~/.bashrc
 exec bash
