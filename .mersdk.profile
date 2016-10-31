@@ -2,6 +2,7 @@ function hadk() { source $HOME/.hadk.env; echo "Env setup for $DEVICE"; }
 hadk
 alias croot="cd $ANDROID_ROOT"
 alias mersdkubu="ubu-chroot -r $MER_ROOT/sdks/ubuntu"
+alias enter_scratchbox="sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -m sdk-install -R"
 PS1="MerSDK $PS1"
 
 #TODO add error checks
@@ -294,4 +295,5 @@ function mer_man {
   echo "  15) mer_man: Show this help"
 }
 
+cd $ANDROID_ROOT
 mer_man
