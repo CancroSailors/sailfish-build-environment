@@ -235,9 +235,9 @@ $ANDROID_ROOT/hybris/droid-configs/installroot/usr/share/kickstarts/$KS > $ANDRO
   sed -i -e "s|@Jolla Configuration cancro|@Jolla Configuration cancro\njolla-email\nsailfish-weather\njolla-calculator\njolla-notes\njolla-calendar\nsailfish-office\nharbour-warehouse|"  $ANDROID_ROOT/tmp/$KS
 
   #Hacky workaround for droid-hal-init starting before /system partition is mounted
-  sed -i '/%post$/a sed -i \"s;WantedBy;RequiredBy;g\"  \/lib\/systemd\/system\/system.mount' $ANDROID_ROOT/tmp/$KS
-  sed -i '/%post$/a echo \"RequiredBy=droid-hal-init.service\" >> \/lib\/systemd\/system\/local-fs.target' $ANDROID_ROOT/tmp/$KS
-  sed -i '/%post$/a echo \"[Install]\" >> \/lib\/systemd\/system\/local-fs.target' $ANDROID_ROOT/tmp/$KS
+  #sed -i '/%post$/a sed -i \"s;WantedBy;RequiredBy;g\"  \/lib\/systemd\/system\/system.mount' $ANDROID_ROOT/tmp/$KS
+  #sed -i '/%post$/a echo \"RequiredBy=droid-hal-init.service\" >> \/lib\/systemd\/system\/local-fs.target' $ANDROID_ROOT/tmp/$KS
+  #sed -i '/%post$/a echo \"[Install]\" >> \/lib\/systemd\/system\/local-fs.target' $ANDROID_ROOT/tmp/$KS
 
   popd
 }
