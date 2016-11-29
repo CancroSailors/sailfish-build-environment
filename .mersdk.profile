@@ -275,6 +275,13 @@ function serve_repo {
   popd
 }
 
+function update_sdk {
+  #TODO: update this to get the latest available version from scratchbox targets and update the hadk
+  sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -R -msdk-install ssu re $SAILFISH_VERSION && zypper ref && zypper dup
+  sudo zypper ref
+  sudo zypper dup
+}
+
 function mer_man {
   echo "Welcome to MerSDK"
   echo "Additional convenience functions defined here are:"
