@@ -1,7 +1,7 @@
 function hadk() { source $HOME/.hadk.env; echo "Env setup for $DEVICE"; }
 hadk
 alias croot="cd $ANDROID_ROOT"
-alias mersdkubu="ubu-chroot -r $MER_ROOT/sdks/ubuntu"
+alias mersdkubu="ubu-chroot -r $HABUILD_ROOT"
 alias enter_scratchbox="sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -m sdk-install -R"
 PS1="MerSDK $PS1"
 
@@ -18,21 +18,20 @@ popd () {
 function setup_ubuntuchroot {
   TARBALL=ubuntu-trusty-android-rootfs.tar.bz2
   curl -O http://img.merproject.org/images/mer-hybris/ubu/$TARBALL
-  UBUNTU_CHROOT=$MER_ROOT/sdks/ubuntu
-  sudo rm -rf $UBUNTU_CHROOT
-  sudo mkdir -p $UBUNTU_CHROOT
-  sudo tar --numeric-owner -xvjf $TARBALL -C $UBUNTU_CHROOT
+  sudo rm -rf $HABUILD_ROOT
+  sudo mkdir -p $HABUILD_ROOT
+  sudo tar --numeric-owner -xvjf $TARBALL -C $HABUILD_ROOT
 }
 
 function setup_repo {
   mkdir -p $ANDROID_ROOT
   sudo chown -R $USER $ANDROID_ROOT
-  ubu-chroot -r $MER_ROOT/sdks/ubuntu /bin/bash -c "echo Installing repo && curl -O https://storage.googleapis.com/git-repo-downloads/repo && chmod a+x repo && sudo mv repo /usr/bin"
+  ubu-chroot -r $HABUILD_ROOT /bin/bash -c "echo Installing repo && curl -O https://storage.googleapis.com/git-repo-downloads/repo && chmod a+x repo && sudo mv repo /usr/bin"
 }
 
 function fetch_sources {
-  ubu-chroot -r $MER_ROOT/sdks/ubuntu /bin/bash -c "echo Initializing repo && cd $ANDROID_ROOT && repo init -u git://github.com/mer-hybris/android.git -b $HYBRIS_BRANCH"
-  ubu-chroot -r $MER_ROOT/sdks/ubuntu /bin/bash -c "echo Syncing sources && cd $ANDROID_ROOT && repo sync --fetch-submodules"
+  ubu-chroot -r $HABUILD_ROOT /bin/bash -c "echo Initializing repo && cd $ANDROID_ROOT && repo init -u git://github.com/mer-hybris/android.git -b $HYBRIS_BRANCH"
+  ubu-chroot -r $HABUILD_ROOT /bin/bash -c "echo Syncing sources && cd $ANDROID_ROOT && repo sync --fetch-submodules"
 }
 
 function setup_scratchbox {
@@ -86,7 +85,7 @@ EOF
 }
 
 function build_hybrishal {
-  ubu-chroot -r $MER_ROOT/sdks/ubuntu /bin/bash -c "echo Building hybris-hal && cd $ANDROID_ROOT && source build/envsetup.sh && breakfast $DEVICE && make -j8 hybris-hal"
+  ubu-chroot -r $HABUILD_ROOT /bin/bash -c "echo Building hybris-hal && cd $ANDROID_ROOT && source build/envsetup.sh && breakfast $DEVICE && make -j8 hybris-hal"
 }
 
 function build_package {
@@ -137,7 +136,7 @@ function build_packages {
 }
 
 function build_audioflingerglue {
-  ubu-chroot -r $MER_ROOT/sdks/ubuntu /bin/bash -c "echo Building audioflingerglue && cd $ANDROID_ROOT && source build/envsetup.sh && breakfast $DEVICE && make -j8 libaudioflingerglue miniafservice"
+  ubu-chroot -r $HABUILD_ROOT /bin/bash -c "echo Building audioflingerglue && cd $ANDROID_ROOT && source build/envsetup.sh && breakfast $DEVICE && make -j8 libaudioflingerglue miniafservice"
 
   pushd $ANDROID_ROOT
 
@@ -177,7 +176,7 @@ function build_audioflingerglue {
 }
 
 function build_gstdroid {
-  ubu-chroot -r $MER_ROOT/sdks/ubuntu /bin/bash -c "echo Building gstdroid && cd $MER_ROOT/android/droid && source build/envsetup.sh && breakfast $DEVICE && make -j8 libcameraservice libdroidmedia minimediaservice minisfservice"
+  ubu-chroot -r $HABUILD_ROOT /bin/bash -c "echo Building gstdroid && cd $MER_ROOT/android/droid && source build/envsetup.sh && breakfast $DEVICE && make -j8 libcameraservice libdroidmedia minimediaservice minisfservice"
   pushd $ANDROID_ROOT
 
   curl http://sprunge.us/WPGA -o pack_source_droidmedia.sh
