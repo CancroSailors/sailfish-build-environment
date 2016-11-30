@@ -276,7 +276,9 @@ function serve_repo {
 
 function update_sdk {
   #TODO: update this to get the latest available version from scratchbox targets and update the hadk
-  sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -R -msdk-install ssu re $SAILFISH_VERSION && zypper ref && zypper dup
+  sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -R -msdk-install ssu re $SAILFISH_VERSION
+  sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -R -msdk-install zypper ref
+  sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -R -msdk-install zypper dup
   sudo zypper ref
   sudo zypper dup
 }
