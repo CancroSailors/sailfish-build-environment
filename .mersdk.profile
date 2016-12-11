@@ -180,7 +180,8 @@ function build_gstdroid {
   pushd $ANDROID_ROOT
 
   curl http://sprunge.us/WPGA -o pack_source_droidmedia.sh
-  cd $ANDROID_ROOT
+  curl http://sprunge.us/FWOg -o droidmedia.spec
+
   chmod +x pack_source_droidmedia.sh
   ./pack_source_droidmedia.sh
   mb2 -s droidmedia.spec -t $VENDOR-$DEVICE-$PORT_ARCH build
