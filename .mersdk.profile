@@ -218,7 +218,7 @@ function generate_kickstart {
   KS="Jolla-@RELEASE@-$DEVICE-@ARCH@.ks"
   #Older version
   #sed -e "s|^$HA_REPO.*$|$HA_REPO --baseurl=file://$ANDROID_ROOT/droid-local-repo/$DEVICE|" $ANDROID_ROOT/hybris/droid-configs/installroot/usr/share/kickstarts/$KS > $ANDROID_ROOT/tmp/$KS
-  sed -e "s|^$HA_REPO.*$|$HA_REPO --baseurl=file://$ANDROID_ROOT/droid-local-repo/$DEVICE|;s|^repo --name=jolla-@RELEASE@.*|& \nrepo --name=common --baseurl=http://repo.merproject.org/obs/nemo:/testing:/hw:/common/sailfish_latest_$PORT_ARCH\nrepo --name=openrepos-basil --baseurl=https://sailfish.openrepos.net/basil/personal/main/|" \
+  sed -e "s|^$HA_REPO.*$|$HA_REPO --baseurl=file://$ANDROID_ROOT/droid-local-repo/$DEVICE|;s|^repo --name=jolla-@RELEASE@.*|& \nrepo --name=common --baseurl=http://repo.merproject.org/obs/nemo:/testing:/hw:/common/sailfish_latest_$PORT_ARCH\n|" \
 $ANDROID_ROOT/hybris/droid-configs/installroot/usr/share/kickstarts/$KS > $ANDROID_ROOT/tmp/$KS
 
   hybris/droid-configs/droid-configs-device/helpers/process_patterns.sh
@@ -232,7 +232,7 @@ $ANDROID_ROOT/hybris/droid-configs/installroot/usr/share/kickstarts/$KS > $ANDRO
     sed -i -e "/^$HA_REPO.*$/a$HA_REPO1" $ANDROID_ROOT/tmp/$KS
   fi
 
-  sed -i -e "s|@Jolla Configuration cancro|@Jolla Configuration cancro\njolla-email\nsailfish-weather\njolla-calculator\njolla-notes\njolla-calendar\nsailfish-office\nharbour-warehouse|"  $ANDROID_ROOT/tmp/$KS
+  sed -i -e "s|@Jolla Configuration cancro|@Jolla Configuration cancro\njolla-email\nsailfish-weather\njolla-calculator\njolla-notes\njolla-calendar\nsailfish-office|"  $ANDROID_ROOT/tmp/$KS
 
   #Hacky workaround for droid-hal-init starting before /system partition is mounted
   #sed -i '/%post$/a sed -i \"s;WantedBy;RequiredBy;g\"  \/lib\/systemd\/system\/system.mount' $ANDROID_ROOT/tmp/$KS
