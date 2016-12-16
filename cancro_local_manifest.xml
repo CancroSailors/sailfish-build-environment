@@ -14,5 +14,8 @@
 
   <remove-project name="sailfishos/droidmedia" />
   <project path="external/droidmedia" name="kimmoli/droidmedia" revision="master" />
+
+  <remove-project name="mer-hybris/android_system_core" />
+  <project path="system/core" name="CancroSailors/android_system_core" groups="pdk" revision="hybris-12.1" />
 </manifest>
 
