@@ -273,8 +273,13 @@ function build_rootfs {
 }
 
 function serve_repo {
+  LOCAL_ADDRESSES=$(/sbin/ip addr | grep inet | grep -v inet6 | grep -v "host lo" | cut -f6 -d' ' | cut -f 1 -d'/')
+  LOCAL_PORT=2016
+  echo "Starting a repo on this machine. You can add it to your device using:"
+  for ADDR in $LOCAL_ADDRESSES; do echo "   " ssu ar local http://$ADDR:$LOCAL_PORT/; done
+
   pushd $ANDROID_ROOT/droid-local-repo/$DEVICE/
-  python -m SimpleHTTPServer
+  python -m SimpleHTTPServer $LOCAL_PORT
   popd
 }
 
