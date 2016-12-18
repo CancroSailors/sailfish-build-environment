@@ -3,6 +3,7 @@ hadk
 
 alias enter_habuildsdk="ubu-chroot -r $HABUILD_ROOT"
 alias enter_scratchbox="sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -m sdk-install -R"
+
 PS1="MerSDK $PS1"
 
 #TODO add error checks
@@ -328,7 +329,8 @@ function mer_man {
   echo "  12) generate_kickstart [obs]: generates a kickstart file needed to build rootfs. specifying obs will add the obs repo"
   echo "  13) build_rootfs [releasename]: builds a sailfishos installer zip for $DEVICE"
   echo "  14) serve_repo : starts a http server on local host. (which you can easily add to your device as ssu ar http://<ipaddr>:9000)"
-  echo "  15) mer_man: Show this help"
+  echo "  15) update_sdk: Update the SDK target to the current stable version, if available."
+  echo "  16) mer_man: Show this help"
 }
 
 cd $ANDROID_ROOT

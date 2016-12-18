@@ -45,7 +45,8 @@ The Additional bash functions it provides are:
   12) generate_kickstart [obs]: generates a kickstart file needed to build rootfs. specifying obs will add the obs repo.
   13) build_rootfs [releasename]: builds a sailfishos installer zip for $DEVICE. Default release name is test.
   14) serve_repo : starts a http server in /path/to/droid-local-repo. (which you can "ssu ar http://<ipaddr>:8000" on device)
-  15) mer_man : show ths list of available functions
+  15) update_sdk: Update the SDK target to the current stable version, if available.
+  16) mer_man : show ths list of available functions
 ```
 
 ### More info:
