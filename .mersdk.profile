@@ -279,12 +279,31 @@ function serve_repo {
 }
 
 function update_sdk {
-  #TODO: update this to get the latest available version from scratchbox targets and update the hadk
-  sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -R -msdk-install ssu re $SAILFISH_VERSION
-  sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -R -msdk-install zypper ref
-  sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -R -msdk-install zypper dup
-  sudo zypper ref
-  sudo zypper dup
+  SFE_SB2_TARGET=$MER_ROOT/targets/$VENDOR-$DEVICE-$PORT_ARCH
+  TARGETS_URL=http://releases.sailfishos.org/sdk/latest/targets/targets.json
+  CURRENT_STABLE_TARGET=$(curl -s $TARGETS_URL 2>/dev/null | grep "$PORT_ARCH.tar.bz2" | cut -d\" -f4 | grep $PORT_ARCH | head -n 1)
+  CURRENT_STABLE_VERSION=`echo $CURRENT_STABLE_TARGET | cut -d'/' -f6 | cut -f 2 -d'-'`
+
+  if [ "$CURRENT_STABLE_VERSION" == "$SAILFISH_VERSION" ]
+  then
+    echo "You are already at the latest Release:" $SAILFISH_VERSION
+  else
+    echo "There is an updated version available:" $CURRENT_STABLE_VERSION
+    read -p "Are you sure you wish to update? [Y/n]" -n 1 -r
+    echo
+
+    if [[ $REPLY =~ ^[Yy]$ ]]
+    then
+      sed -i /export\ SAILFISH_VERSION/s/.*/export\ SAILFISH_VERSION=$CURRENT_STABLE_VERSION/ ~/.hadk.env
+      . ~/.hadk.env
+      echo Updating to $SAILFISH_VERSION
+      sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -R -msdk-install ssu re $SAILFISH_VERSION
+      sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -R -msdk-install zypper ref
+      sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -R -msdk-install zypper dup
+      sudo zypper ref
+      sudo zypper dup
+    fi
+  fi
 }
 
 function mer_man {
