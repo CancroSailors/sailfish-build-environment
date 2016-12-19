@@ -112,13 +112,6 @@ function build_package {
       echo "Building $SPEC"
       mb2 -s $SPEC -t $VENDOR-$DEVICE-$PORT_ARCH build || echo "Build failed" && return
     done
-    echo "Building successful, adding packages to repo"
-    mkdir -p "$ANDROID_ROOT/droid-local-repo/$DEVICE/$PKG"
-    rm -f "$ANDROID_ROOT/droid-local-repo/$DEVICE/$PKG/"*.rpm
-    mv RPMS/*.rpm "$ANDROID_ROOT/droid-local-repo/$DEVICE/$PKG"
-    createrepo "$ANDROID_ROOT/droid-local-repo/$DEVICE"
-    sb2 -t $VENDOR-$DEVICE-$ARCH -R -msdk-install zypper ref
-    echo "Building of $PKG finished successfully"
 
     echo "Building successful, adding packages to repo"
     mkdir -p "$ANDROID_ROOT/droid-local-repo/$DEVICE/$PKG"
