@@ -245,7 +245,7 @@ function upload_packages {
 
   osc up
   rm *.rpm
-  cp $ANDROID_ROOT/droid-local-repo/$DEVICE/droid-hal-$DEVICE* .
+  cp $ANDROID_ROOT/droid-local-repo/$DEVICE/droid-hal-$DEVICE/* .
   cp $ANDROID_ROOT/droid-local-repo/$DEVICE/audioflingerglue* .
   cp $ANDROID_ROOT/droid-local-repo/$DEVICE/droidmedia* .
   osc ar
