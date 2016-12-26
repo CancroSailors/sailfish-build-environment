@@ -210,23 +210,22 @@ function build_gstdroid {
 function generate_kickstart {
   pushd $ANDROID_ROOT
 
-  mkdir -p tmp
-  HA_REPO="repo --name=adaptation0-$DEVICE-@RELEASE@"
-  KS="Jolla-@RELEASE@-$DEVICE-@ARCH@.ks"
-  #Older version
-  #sed -e "s|^$HA_REPO.*$|$HA_REPO --baseurl=file://$ANDROID_ROOT/droid-local-repo/$DEVICE|" $ANDROID_ROOT/hybris/droid-configs/installroot/usr/share/kickstarts/$KS > $ANDROID_ROOT/tmp/$KS
-  sed -e "s|^$HA_REPO.*$|$HA_REPO --baseurl=file://$ANDROID_ROOT/droid-local-repo/$DEVICE|;s|^repo --name=jolla-@RELEASE@.*|& \nrepo --name=common --baseurl=http://repo.merproject.org/obs/nemo:/testing:/hw:/common/sailfishos_$SAILFISH_VERSION/$PORT_ARCH\n|" \
-$ANDROID_ROOT/hybris/droid-configs/installroot/usr/share/kickstarts/$KS > $ANDROID_ROOT/tmp/$KS
 
   hybris/droid-configs/droid-configs-device/helpers/process_patterns.sh
 
+  mkdir -p tmp
+  KS="Jolla-@RELEASE@-$DEVICE-@ARCH@.ks"
 
-  if [ $1 = "obs" ]; then
+  cp $ANDROID_ROOT/hybris/droid-configs/installroot/usr/share/kickstarts/$KS $ANDROID_ROOT/tmp/$KS
+
+  #By default we have a kickstart file which points to devel repos. Using this switch we can switch to local/testing repos
+  if [ $1 == "local" ]; then
+    HA_REPO="repo --name=adaptation-community-cancro-@RELEASE@"
+    sed -i -e "s|^$HA_REPO.*$|$HA_REPO --baseurl=file://$ANDROID_ROOT/droid-local-repo/$DEVICE|" $ANDROID_ROOT/tmp/$KS
+  elif [ $1 == "release" ]; then
     #Adding our OBS repo
-    MOBS_URI="http://repo.merproject.org/obs"
-    HA_REPO="repo --name=adaptation0-$DEVICE-@RELEASE@"
-    HA_REPO1="repo --name=adaptation1-$DEVICE-@RELEASE@ --baseurl=$MOBS_URI/nemo:/devel:/hw:/$VENDOR:/$DEVICE/sailfish_latest_@ARCH@/"
-    sed -i -e "/^$HA_REPO.*$/a$HA_REPO1" $ANDROID_ROOT/tmp/$KS
+    sed -i -e "s/nemo\:\/devel/nemo\:\/testing/g" $ANDROID_ROOT/tmp/$KS
+    sed -i -e "s/sailfish_latest_@ARCH@\//sailfishos_@RELEASE@\//g" $ANDROID_ROOT/tmp/$KS
   fi
 
   sed -i -e "s|@Jolla Configuration cancro|@Jolla Configuration cancro\njolla-email\nsailfish-weather\njolla-calculator\njolla-notes\njolla-calendar\nsailfish-office|"  $ANDROID_ROOT/tmp/$KS
@@ -319,7 +318,7 @@ function mer_man {
   echo "  9) build_audioflingerglue: builds audioflingerglue packages for audio calls"
   echo "  10) build_gstdroid: builds gstdroid for audio/video/camera support"
   echo "  11) upload_packages: uploads droid-hal*, audioflingerglue, gstdroid* packages to OBS"
-  echo "  12) generate_kickstart [obs]: generates a kickstart file needed to build rootfs. specifying obs will add the obs repo"
+  echo "  12) generate_kickstart [local/release]: generates a kickstart file with devel repos, needed to build rootfs. Specifying local/release will switch the OBS repos"
   echo "  13) build_rootfs [releasename]: builds a sailfishos installer zip for $DEVICE"
   echo "  14) serve_repo : starts a http server on local host. (which you can easily add to your device as ssu ar http://<ipaddr>:9000)"
   echo "  15) update_sdk: Update the SDK target to the current stable version, if available."
