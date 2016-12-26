@@ -127,7 +127,7 @@ function build_package {
 function build_packages {
   pushd $ANDROID_ROOT
 
-  rpm/dhd/helpers/build_packages.sh
+  rpm/dhd/helpers/build_packages.sh $@
 
   popd
 }
