@@ -220,7 +220,7 @@ function generate_kickstart {
 
   #By default we have a kickstart file which points to devel repos. Using this switch we can switch to local/testing repos
   if [ $1 == "local" ]; then
-    HA_REPO="repo --name=adaptation-community-cancro-@RELEASE@"
+    HA_REPO="repo --name=adaptation-community-$DEVICE-@RELEASE@"
     sed -i -e "s|^$HA_REPO.*$|$HA_REPO --baseurl=file://$ANDROID_ROOT/droid-local-repo/$DEVICE|" $ANDROID_ROOT/tmp/$KS
   elif [ $1 == "release" ]; then
     #Adding our OBS repo
@@ -228,7 +228,7 @@ function generate_kickstart {
     sed -i -e "s/sailfish_latest_@ARCH@\//sailfishos_@RELEASE@\//g" $ANDROID_ROOT/tmp/$KS
   fi
 
-  sed -i -e "s|@Jolla Configuration cancro|@Jolla Configuration cancro\njolla-email\nsailfish-weather\njolla-calculator\njolla-notes\njolla-calendar\nsailfish-office|"  $ANDROID_ROOT/tmp/$KS
+  sed -i -e "s|@Jolla Configuration $DEVICE|@Jolla Configuration $DEVICE\njolla-email\nsailfish-weather\njolla-calculator\njolla-notes\njolla-calendar\nsailfish-office|"  $ANDROID_ROOT/tmp/$KS
 
   #Hacky workaround for droid-hal-init starting before /system partition is mounted
   #sed -i '/%post$/a sed -i \"s;WantedBy;RequiredBy;g\"  \/lib\/systemd\/system\/system.mount' $ANDROID_ROOT/tmp/$KS
