@@ -303,7 +303,7 @@ function setup_obsenv {
 
 function upload_packages {
   #Upload gstdroid and droid-hal* to OBS
-  pushd $MER_ROOT/OBS/nemo\:devel\:hw\:$VENDOR\:$DEVICE/droid-hal-$DEVICE/
+  pushd $OBS_ROOT/nemo\:devel\:hw\:$VENDOR\:$DEVICE/droid-hal-$DEVICE/
 
   osc up
   rm *.rpm
