@@ -238,21 +238,6 @@ function generate_kickstart {
   popd
 }
 
-function upload_packages {
-  #Upload gstdroid and droid-hal* to OBS
-  pushd $MER_ROOT/OBS/nemo\:devel\:hw\:$VENDOR\:$DEVICE/droid-hal-$DEVICE/
-
-  osc up
-  rm *.rpm
-  cp $ANDROID_ROOT/droid-local-repo/$DEVICE/droid-hal-$DEVICE/* .
-  cp $ANDROID_ROOT/droid-local-repo/$DEVICE/audioflingerglue* .
-  cp $ANDROID_ROOT/droid-local-repo/$DEVICE/droidmedia* .
-  osc ar
-  osc ci
-
-  popd
-}
-
 function build_rootfs {
   RELEASE=$SAILFISH_VERSION
   if [[ -z "$1" ]]
@@ -304,7 +289,7 @@ function update_sdk {
   fi
 }
 
-function setup_obs_env {
+function setup_obsenv {
   if [[ ! -d $OBS_ROOT ]] 
   then
      sudo mkdir $OBS_ROOT
@@ -316,16 +301,42 @@ function setup_obs_env {
   fi
 }
 
-function obs_promoption {
-  if [[ -d $OBS_ROOT ]] && [ ! -a $OBS_ROOT/obs_promote.sh ]
-  then
-     curl -o $OBS_ROOT/cleanup_and_promote.py -s https://gist.githubusercontent.com/Nokius/c7d39dda4ea0a242044e0fecbaf797a9/raw/efba3f696d116143f6ee5941e41bcc26b2a6cac7/cleanup_and_promote.py
-     python $OBS_ROOT/cleanup_and_promote.py > $OBS_ROOT/obs_promote.sh
-     rm $OBS_ROOT/cleanup_and_promote.py
-     sh $OBS_ROOT/obs_promote.sh
-  else
-     sh $OBS_ROOT/obs_promote.sh
-  fi
+function upload_packages {
+  #Upload gstdroid and droid-hal* to OBS
+  pushd $MER_ROOT/OBS/nemo\:devel\:hw\:$VENDOR\:$DEVICE/droid-hal-$DEVICE/
+
+  osc up
+  rm *.rpm
+  cp $ANDROID_ROOT/droid-local-repo/$DEVICE/droid-hal-$DEVICE/* .
+  cp $ANDROID_ROOT/droid-local-repo/$DEVICE/audioflingerglue* .
+  cp $ANDROID_ROOT/droid-local-repo/$DEVICE/droidmedia* .
+  osc ar
+  osc ci
+
+  popd
+}
+
+function promote_packages {
+  #Promote packages from devel repo to testing repo
+  TESTING_REPO="nemo:testing:hw:$VENDOR:$DEVICE"
+  DEVEL_REPO="nemo:devel:hw:$VENDOR:$DEVICE"
+
+  #Ignoring the _pattern package and comments.
+  #Wrapping each package name with % %, for easier array search
+  DEVEL_PACKAGES=`osc ls $DEVEL_REPO | grep -v "_pattern\|^#" | sed -e 's/^/%/' | sed -e 's/$/%/'`
+  TESTING_PACKAGES=`osc ls $TESTING_REPO | grep -v "_pattern\|^#" | sed -e 's/^/%/' | sed -e 's/$/%/'`
+
+  # Delete any packages which are in testing repo but not in devel
+  for PACKAGE in $TESTING_PACKAGES; do
+    if [[ ! "${DEVEL_PACKAGES[@]}" =~ "${PACKAGE}" ]]; then
+      osc -A https://api.merproject.org rdelete $TESTING_REPO ${PACKAGE//%/} -m maintenance
+    fi
+  done
+
+  # Copy packages over from devel to testing
+  for PACKAGE in $DEVEL_PACKAGES; do
+    osc -A https://api.merproject.org copypac $DEVEL_REPO ${PACKAGE//%/} $TESTING_REPO
+  done
 }
 
 function mer_man {
@@ -333,7 +344,7 @@ function mer_man {
   echo "Additional convenience functions defined here are:"
   echo "  1) setup_ubuntuchroot: set up ubuntu chroot for painless building of android"
   echo "  2) setup_repo: sets up repo tool in ubuntu chroot to fetch android/mer sources"
-  echo "  3) setup_obs_env: sets up a folder to use OBS"
+  echo "  3) setup_obsenv: sets up a folder to use OBS"
   echo "  4) fetch_sources: fetch android/mer sources"
   echo "  5) setup_scratchbox: sets up a cross compilation toolchain to build mer packages"
   echo "  6) test_scratchbox: tests the scratchbox toolchain."
@@ -342,12 +353,12 @@ function mer_man {
   echo "  9) build_packages: builds packages needed to build the sailfishos rootfs of $DEVICE"
   echo "  10) build_audioflingerglue: builds audioflingerglue packages for audio calls"
   echo "  11) build_gstdroid: builds gstdroid for audio/video/camera support"
-  echo "  12) upload_packages: uploads droid-hal*, audioflingerglue, gstdroid* packages to OBS"
-  echo "  13) generate_kickstart [local/release]: generates a kickstart file with devel repos, needed to build rootfs. Specifying local/release will switch the OBS repos"
-  echo "  14) build_rootfs [releasename]: builds a sailfishos installer zip for $DEVICE"
-  echo "  15) serve_repo : starts a http server on local host. (which you can easily add to your device as ssu ar http://<ipaddr>:9000)"
-  echo "  16) update_sdk: Update the SDK target to the current stable version, if available."
-  echo "  17) obs_promote: copied packages from nemo:devel:hw:$VENDOR:$DEVICE to nemo:testing:hw:$VENDOR:$DEVICE"
+  echo "  12) upload_packages: uploads droid-hal*, audioflingerglue, gstdroid* packages to nemo:devel:hw:$VENDOR:$DEVICE on OBS"
+  echo "  13) promote_packages: promote packages on OBS from nemo:devel:hw:$VENDOR:$DEVICE to nemo:testing:hw:$VENDOR:$DEVICE"
+  echo "  14) generate_kickstart [local/release]: generates a kickstart file with devel repos, needed to build rootfs. Specifying local/release will switch the OBS repos"
+  echo "  15) build_rootfs [releasename]: builds a sailfishos installer zip for $DEVICE"
+  echo "  16) serve_repo : starts a http server on local host. (which you can easily add to your device as ssu ar http://<ipaddr>:9000)"
+  echo "  17) update_sdk: Update the SDK target to the current stable version, if available."
   echo "  18) mer_man: Show this help"
 }
 
