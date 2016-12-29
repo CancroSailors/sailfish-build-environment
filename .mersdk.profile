@@ -304,25 +304,51 @@ function update_sdk {
   fi
 }
 
+function setup_obs_env {
+  if [[ ! -d $OBS_ROOT ]] 
+  then
+     sudo mkdir $OBS_ROOT
+     sudo chown $USER $OBS_ROOT
+     echo ""
+     echo " Make yourself familier with setting up .oscrc"
+     echo " https://wiki.merproject.org/wiki/Building_against_Mer_in_Community_OBS#Setup_.oscrc"
+     echo ""
+  fi
+}
+
+function obs_promoption {
+  if [[ -d $OBS_ROOT ]] && [ ! -a $OBS_ROOT/obs_promote.sh ]
+  then
+     curl -o $OBS_ROOT/cleanup_and_promote.py -s https://gist.githubusercontent.com/Nokius/c7d39dda4ea0a242044e0fecbaf797a9/raw/efba3f696d116143f6ee5941e41bcc26b2a6cac7/cleanup_and_promote.py
+     python $OBS_ROOT/cleanup_and_promote.py > $OBS_ROOT/obs_promote.sh
+     rm $OBS_ROOT/cleanup_and_promote.py
+     sh $OBS_ROOT/obs_promote.sh
+  else
+     sh $OBS_ROOT/obs_promote.sh
+  fi
+}
+
 function mer_man {
   echo "Welcome to MerSDK"
   echo "Additional convenience functions defined here are:"
   echo "  1) setup_ubuntuchroot: set up ubuntu chroot for painless building of android"
   echo "  2) setup_repo: sets up repo tool in ubuntu chroot to fetch android/mer sources"
-  echo "  3) fetch_sources: fetch android/mer sources"
-  echo "  4) setup_scratchbox: sets up a cross compilation toolchain to build mer packages"
-  echo "  5) test_scratchbox: tests the scratchbox toolchain."
-  echo "  6) build_hybrishal: builds the hybris-hal needed to boot sailfishos for $DEVICE"
-  echo "  7) build_package PKG_PATH [spec files]: builds package at path specified by the spec files"
-  echo "  8) build_packages: builds packages needed to build the sailfishos rootfs of $DEVICE"
-  echo "  9) build_audioflingerglue: builds audioflingerglue packages for audio calls"
-  echo "  10) build_gstdroid: builds gstdroid for audio/video/camera support"
-  echo "  11) upload_packages: uploads droid-hal*, audioflingerglue, gstdroid* packages to OBS"
-  echo "  12) generate_kickstart [local/release]: generates a kickstart file with devel repos, needed to build rootfs. Specifying local/release will switch the OBS repos"
-  echo "  13) build_rootfs [releasename]: builds a sailfishos installer zip for $DEVICE"
-  echo "  14) serve_repo : starts a http server on local host. (which you can easily add to your device as ssu ar http://<ipaddr>:9000)"
-  echo "  15) update_sdk: Update the SDK target to the current stable version, if available."
-  echo "  16) mer_man: Show this help"
+  echo "  3) setup_obs_env: sets up a folder to use OBS"
+  echo "  4) fetch_sources: fetch android/mer sources"
+  echo "  5) setup_scratchbox: sets up a cross compilation toolchain to build mer packages"
+  echo "  6) test_scratchbox: tests the scratchbox toolchain."
+  echo "  7) build_hybrishal: builds the hybris-hal needed to boot sailfishos for $DEVICE"
+  echo "  8) build_package PKG_PATH [spec files]: builds package at path specified by the spec files"
+  echo "  9) build_packages: builds packages needed to build the sailfishos rootfs of $DEVICE"
+  echo "  10) build_audioflingerglue: builds audioflingerglue packages for audio calls"
+  echo "  11) build_gstdroid: builds gstdroid for audio/video/camera support"
+  echo "  12) upload_packages: uploads droid-hal*, audioflingerglue, gstdroid* packages to OBS"
+  echo "  13) generate_kickstart [local/release]: generates a kickstart file with devel repos, needed to build rootfs. Specifying local/release will switch the OBS repos"
+  echo "  14) build_rootfs [releasename]: builds a sailfishos installer zip for $DEVICE"
+  echo "  15) serve_repo : starts a http server on local host. (which you can easily add to your device as ssu ar http://<ipaddr>:9000)"
+  echo "  16) update_sdk: Update the SDK target to the current stable version, if available."
+  echo "  17) obs_promote: copied packages from nemo:devel:hw:$VENDOR:$DEVICE to nemo:testing:hw:$VENDOR:$DEVICE"
+  echo "  18) mer_man: Show this help"
 }
 
 cd $ANDROID_ROOT
