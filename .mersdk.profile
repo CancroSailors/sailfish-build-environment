@@ -20,7 +20,7 @@ function setup_ubuntuchroot {
   mkdir -p $MER_TMPDIR
   pushd $MER_TMPDIR
   TARBALL=ubuntu-trusty-android-rootfs.tar.bz2
-  curl -O http://img.merproject.org/images/mer-hybris/ubu/$TARBALL
+  curl -k -O -C - http://img.merproject.org/images/mer-hybris/ubu/$TARBALL
   sudo rm -rf $HABUILD_ROOT
   sudo mkdir -p $HABUILD_ROOT
   sudo tar --numeric-owner -xvjf $TARBALL -C $HABUILD_ROOT
