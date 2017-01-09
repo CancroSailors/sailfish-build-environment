@@ -128,8 +128,8 @@ function build_packages {
   pushd $ANDROID_ROOT
 
   rpm/dhd/helpers/build_packages.sh $@
-  rpm/dhd/helpers/build_packages.sh -mw="https://git.merproject.org/kimmoli/pulseaudio-policy-enforcement.git"
-  rpm/dhd/helpers/build_packages.sh -mw="https://git.merproject.org/mer-core/qt-mobility-haptics-ffmemless.git"
+  rpm/dhd/helpers/build_packages.sh --mw="https://git.merproject.org/kimmoli/pulseaudio-policy-enforcement.git"
+  rpm/dhd/helpers/build_packages.sh --mw="https://git.merproject.org/mer-core/qt-mobility-haptics-ffmemless.git"
 
   popd
 }
