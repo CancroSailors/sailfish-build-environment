@@ -24,6 +24,7 @@ function setup_ubuntuchroot {
   sudo rm -rf $HABUILD_ROOT
   sudo mkdir -p $HABUILD_ROOT
   sudo tar --numeric-owner -xvjf $TARBALL -C $HABUILD_ROOT
+  ubu-chroot -r $HABUILD_ROOT /bin/bash -c "echo Installing useful tools && sudo apt-get update && sudo apt-get install unzip silversearcher-ag"
   popd
 }
 
