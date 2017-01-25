@@ -164,13 +164,8 @@ function build_audioflingerglue {
   cd $PKG
   curl http://pastebin.com/raw/H8U5nSNm -o pulseaudio-modules-droid-glue.patch
   patch -p1 < pulseaudio-modules-droid-glue.patch
-    
-  mb2 -s rpm/$PKG.spec -t $VENDOR-$DEVICE-$PORT_ARCH build
-  mkdir -p $ANDROID_ROOT/droid-local-repo/$DEVICE/$PKG/
-  rm -f $ANDROID_ROOT/droid-local-repo/$DEVICE/$PKG/*.rpm
-  mv RPMS/*.rpm $ANDROID_ROOT/droid-local-repo/$DEVICE/$PKG
-  createrepo $ANDROID_ROOT/droid-local-repo/$DEVICE
-  sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -R -msdk-install zypper ref
+
+  build_package .
 
   popd
 }
@@ -200,12 +195,7 @@ function build_gstdroid {
   git clone https://github.com/sailfishos/$PKG.git -b master
   cd $PKG
 
-  mb2 -s rpm/$PKG.spec -t $VENDOR-$DEVICE-$PORT_ARCH build
-  mkdir -p $ANDROID_ROOT/droid-local-repo/$DEVICE/$PKG/
-  rm -f $ANDROID_ROOT/droid-local-repo/$DEVICE/$PKG/*.rpm
-  mv RPMS/*.rpm $ANDROID_ROOT/droid-local-repo/$DEVICE/$PKG
-  createrepo $ANDROID_ROOT/droid-local-repo/$DEVICE
-  sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -R -msdk-install zypper ref
+  build_package .
 
   popd
 }
