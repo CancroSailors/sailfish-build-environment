@@ -94,35 +94,7 @@ function build_hybrishal {
 }
 
 function build_package {
-  PKG_PATH="$1"
-  shift
-
-  [ -z "$PKG_PATH" ] && echo "Please enter the path to the pkg source" && return
-
-  pushd $PKG_PATH
-  PKG="$(basename ${PWD})"
-
-  if [ $? == "0" ]; then
-    SPECS="$*"
-    if [ -z "$SPECS" ]; then
-      echo "No spec files for package building specified, building all I can find."
-      SPECS="rpm/*.spec"
-    fi
-
-    for SPEC in $SPECS ; do
-      echo "Building $SPEC"
-      mb2 -s $SPEC -t $VENDOR-$DEVICE-$PORT_ARCH build || echo "Build failed" && return
-    done
-
-    echo "Building successful, adding packages to repo"
-    mkdir -p "$ANDROID_ROOT/droid-local-repo/$DEVICE/$PKG"
-    rm -f "$ANDROID_ROOT/droid-local-repo/$DEVICE/$PKG/"*.rpm
-    mv RPMS/*.rpm "$ANDROID_ROOT/droid-local-repo/$DEVICE/$PKG"
-    createrepo "$ANDROID_ROOT/droid-local-repo/$DEVICE"
-    sb2 -t $VENDOR-$DEVICE-$ARCH -R -msdk-install zypper ref
-    echo "Building of $PKG finished successfully"
-  fi
-  popd
+  $ANDROID_ROOT/rpm/dhd/helpers/build_packages.sh --build=$1
 }
 
 function build_packages {
@@ -135,37 +107,50 @@ function build_packages {
   popd
 }
 
+function fetch_mw {
+  mkdir -p $HYBRIS_MW_ROOT
+  pushd $HYBRIS_MW_ROOT
+
+  PKG=`basename $1 .git`
+  if [ -d "$PWD/$PKG" ]
+  then
+    cd $PWD/$PKG
+    git pull
+    git submodule update
+  else
+    git clone $1
+    cd $PWD/$PKG
+    git submodule init
+    git submodule update
+  fi
+  popd
+}
+
 function build_audioflingerglue {
   ubu-chroot -r $HABUILD_ROOT /bin/bash -c "echo Building audioflingerglue && cd $ANDROID_ROOT && source build/envsetup.sh && breakfast $DEVICE && make -j8 libaudioflingerglue miniafservice"
 
   pushd $ANDROID_ROOT
 
-  curl http://sprunge.us/OADK -o pack_source_af.sh
-  curl http://sprunge.us/TEfZ -o audioflingerglue.spec
+  PKG_PATH=$HYBRIS_MW_ROOT/audioflingerglue-localbuild
+  mkdir -p $PKG_PATH/rpm
 
-  chmod +x pack_source_af.sh
-  ./pack_source_af.sh
-
-  mb2 -s audioflingerglue.spec -t $VENDOR-$DEVICE-$PORT_ARCH build
-  mv RPMS/*.rpm $ANDROID_ROOT/droid-local-repo/$DEVICE/
-  createrepo $ANDROID_ROOT/droid-local-repo/$DEVICE
-  sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -R -msdk-install zypper ref
-
-  #Removing conflicting modules
-  rm out/target/product/$DEVICE/system/bin/miniafservice
-  rm out/target/product/$DEVICE/system/lib/libaudioflingerglue.so
+  #FIXME: DO NOT hardcode the version of the tgz archive of audioflingerglue
+  $ANDROID_ROOT/rpm/dhd/helpers/pack_source_audioflingerglue-localbuild.sh
+  mv $HYBRIS_MW_ROOT/audioflingerglue-0.0.1.tgz $PKG_PATH/
+  cp $ANDROID_ROOT/rpm/dhd/helpers/audioflingerglue-localbuild.spec $PKG_PATH/rpm/audioflingerglue.spec
+  build_package $PKG_PATH
 
   #Build pulseaudio-modules-droid-glue
-  mkdir -p $MER_ROOT/devel/mer-hybris
-  cd $MER_ROOT/devel/mer-hybris
-  PKG=pulseaudio-modules-droid-glue
-  rm -rf $PKG
-  git clone https://github.com/mer-hybris/pulseaudio-modules-droid-glue.git
-  cd $PKG
-  curl http://pastebin.com/raw/H8U5nSNm -o pulseaudio-modules-droid-glue.patch
-  patch -p1 < pulseaudio-modules-droid-glue.patch
+  PKG_REPO=https://github.com/mer-hybris/pulseaudio-modules-droid-glue.git
+  PKG=`basename $PKG_REPO .git`
 
-  build_package .
+  fetch_mw $PKG_REPO
+  #pushd $HYBRIS_MW_ROOT/$PKG
+  #curl http://pastebin.com/raw/H8U5nSNm -o pulseaudio-modules-droid-glue.patch
+  #patch -p1 < pulseaudio-modules-droid-glue.patch
+  #popd
+
+  build_package $HYBRIS_MW_ROOT/$PKG
 
   popd
 }
@@ -174,35 +159,26 @@ function build_gstdroid {
   ubu-chroot -r $HABUILD_ROOT /bin/bash -c "echo Building gstdroid && cd $MER_ROOT/android/droid && source build/envsetup.sh && breakfast $DEVICE && make -j8 libcameraservice libdroidmedia minimediaservice minisfservice"
   pushd $ANDROID_ROOT
 
-  curl http://sprunge.us/WPGA -o pack_source_droidmedia.sh
-  curl http://sprunge.us/FWOg -o droidmedia.spec
+  PKG_PATH=$HYBRIS_MW_ROOT/droidmedia-localbuild
+  mkdir -p $PKG_PATH/rpm/
 
-  chmod +x pack_source_droidmedia.sh
-  ./pack_source_droidmedia.sh
-  mb2 -s droidmedia.spec -t $VENDOR-$DEVICE-$PORT_ARCH build
-  mv RPMS/*.rpm $ANDROID_ROOT/droid-local-repo/$DEVICE/
-  createrepo $ANDROID_ROOT/droid-local-repo/$DEVICE
-  sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -R -msdk-install zypper ref
+  DROIDMEDIA_VERSION=$(git --git-dir $ANDROID_ROOT/external/droidmedia/.git describe --tags | sed -r "s/\-/\+/g")
+  sed -e "s/0.0.0/$DROIDMEDIA_VERSION/" $ANDROID_ROOT/rpm/dhd/helpers/droidmedia-localbuild.spec > $PKG_PATH/rpm/droidmedia.spec
 
-  rm out/target/product/$DEVICE/system/bin/minimediaservice
-  rm out/target/product/$DEVICE/system/bin/minisfservice
-  rm out/target/product/$DEVICE/system/lib/libdroidmedia.so
+  #FIXME: Do not hardcode version this way
+  $ANDROID_ROOT/rpm/dhd/helpers/pack_source_droidmedia-localbuild.sh $DROIDMEDIA_VERSION
+  mv $HYBRIS_MW_ROOT/droidmedia-$DROIDMEDIA_VERSION.tgz $PKG_PATH/
+  build_package $PKG_PATH
 
-  mkdir -p $MER_ROOT/devel/mer-hybris
-  cd $MER_ROOT/devel/mer-hybris
-  PKG=gst-droid
-  rm -rf $PKG
-  git clone https://github.com/sailfishos/$PKG.git -b master
-  cd $PKG
-
-  build_package .
+  PKG_REPO=https://github.com/sailfishos/gst-droid.git
+  fetch_mw $PKG_REPO
+  build_package $ANDROID_ROOT/hybris/mw/`basename $PKG_REPO .git`
 
   popd
 }
 
 function generate_kickstart {
   pushd $ANDROID_ROOT
-
 
   hybris/droid-configs/droid-configs-device/helpers/process_patterns.sh
 
@@ -301,8 +277,8 @@ function upload_packages {
   osc up
   rm *.rpm
   cp $ANDROID_ROOT/droid-local-repo/$DEVICE/droid-hal-$DEVICE/* .
-  cp $ANDROID_ROOT/droid-local-repo/$DEVICE/audioflingerglue* .
-  cp $ANDROID_ROOT/droid-local-repo/$DEVICE/droidmedia* .
+  cp $ANDROID_ROOT/droid-local-repo/$DEVICE/audioflingerglue-localbuild/* .
+  cp $ANDROID_ROOT/droid-local-repo/$DEVICE/droidmedia-localbuild/* .
   osc ar
   osc ci
 
