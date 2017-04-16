@@ -94,7 +94,26 @@ function build_hybrishal {
 }
 
 function build_package {
-  $ANDROID_ROOT/rpm/dhd/helpers/build_packages.sh --build=$1
+  PKG_PATH=`readlink -e $1`
+  shift
+  pushd $PKG_PATH
+  SPECS=$1
+  if [ -z "$SPECS" ]; then
+    echo "No spec file for package building specified, building all I can find."
+    SPECS="rpm/*.spec"
+  fi
+  for SPEC in $SPECS ; do
+    minfo "Building $SPEC"
+    mb2 -s $SPEC -t $VENDOR-$DEVICE-$PORT_ARCH build
+  done
+
+  PKG=`basename $PKG_PATH`
+  mkdir -p "$ANDROID_ROOT/droid-local-repo/$DEVICE/$PKG"
+  rm -f "$ANDROID_ROOT/droid-local-repo/$DEVICE/$PKG/"*.rpm
+  mv RPMS/*.rpm "$ANDROID_ROOT/droid-local-repo/$DEVICE/$PKG"
+  echo "Packages Built:"
+  ls $ANDROID_ROOT/droid-local-repo/$DEVICE/$PKG/
+  popd
 }
 
 function build_packages {
