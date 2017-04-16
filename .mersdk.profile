@@ -273,6 +273,9 @@ function update_sdk {
       sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -R -msdk-install zypper dup
       sudo zypper ref
       sudo zypper dup
+      sudo ssu re $SAILFISH_VERSION
+      sudo zypper ref
+      sudo zypper dup
     fi
   fi
 }
