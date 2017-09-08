@@ -16,11 +16,21 @@ popd () {
   command popd "$@" > /dev/null
 }
 
+die () {
+  if [ -z "$*" ]; then
+    echo "command failed at `date`, dying..."
+  else
+    echo "$*"
+  fi
+  exit 1
+}
+
+
 function setup_ubuntuchroot {
   mkdir -p $MER_TMPDIR
   pushd $MER_TMPDIR
   TARBALL=ubuntu-trusty-android-rootfs.tar.bz2
-  curl -k -O -C - http://img.merproject.org/images/mer-hybris/ubu/$TARBALL
+  curl -k -O -C - http://img.merproject.org/images/mer-hybris/ubu/$TARBALL || die "Error downloading ubuntu rootfs"
   sudo rm -rf $HABUILD_ROOT
   sudo mkdir -p $HABUILD_ROOT
   sudo tar --numeric-owner -xvjf $TARBALL -C $HABUILD_ROOT
@@ -49,7 +59,7 @@ function setup_scratchbox {
 
   echo "Downloading: " $TARBALL
   rm $(basename $TARBALL)
-  curl -O $TARBALL
+  curl -k -O -C - $TARBALL || die "Error downloading scratchbox target"
 
   sudo rm -rf $SFE_SB2_TARGET
   sudo mkdir -p $SFE_SB2_TARGET
@@ -63,9 +73,9 @@ function setup_scratchbox {
 
   sb2-init -d -L "--sysroot=/" -C "--sysroot=/" -c /usr/bin/qemu-arm-dynamic -m sdk-build -n -N -t / $VENDOR-$DEVICE-$PORT_ARCH /opt/cross/bin/$PORT_ARCH-meego-linux-gnueabi-gcc
 
-  sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -m sdk-install -R rpm --rebuilddb
-  sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -m sdk-install -R zypper ar -G http://repo.merproject.org/releases/mer-tools/rolling/builds/$PORT_ARCH/packages/ mer-tools-rolling
-  sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -m sdk-install -R zypper ref --force
+  sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -m sdk-install -R rpm --rebuilddb || die "Error rebuilding rpm database"
+  sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -m sdk-install -R zypper ar -G http://repo.merproject.org/releases/mer-tools/rolling/builds/$PORT_ARCH/packages/ mer-tools-rolling || die "Error installing packages"
+  sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -m sdk-install -R zypper ref --force || die "Error refreshing repos"
 
   popd
 }
@@ -104,7 +114,7 @@ function build_package {
   fi
   for SPEC in $SPECS ; do
     minfo "Building $SPEC"
-    mb2 -s $SPEC -t $VENDOR-$DEVICE-$PORT_ARCH build
+    mb2 -s $SPEC -t $VENDOR-$DEVICE-$PORT_ARCH build || die "Error building package $1"
   done
 
   PKG=`basename $PKG_PATH`
@@ -163,7 +173,7 @@ function build_audioflingerglue {
   PKG_REPO=https://github.com/mer-hybris/pulseaudio-modules-droid-glue.git
   PKG=`basename $PKG_REPO .git`
 
-  fetch_mw $PKG_REPO
+  fetch_mw $PKG_REPO || die "Unable to fetch $PKG_REPO"
   #pushd $HYBRIS_MW_ROOT/$PKG
   #curl http://pastebin.com/raw/H8U5nSNm -o pulseaudio-modules-droid-glue.patch
   #patch -p1 < pulseaudio-modules-droid-glue.patch
