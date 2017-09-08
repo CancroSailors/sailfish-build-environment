@@ -203,25 +203,33 @@ function generate_kickstart {
 
   mkdir -p tmp
   KS="Jolla-@RELEASE@-$DEVICE-@ARCH@.ks"
+  KS_PATH=$ANDROID_ROOT/tmp/$KS
 
-  cp $ANDROID_ROOT/hybris/droid-configs/installroot/usr/share/kickstarts/$KS $ANDROID_ROOT/tmp/$KS
+  cp $ANDROID_ROOT/hybris/droid-configs/installroot/usr/share/kickstarts/$KS $KS_PATH
 
-  #By default we have a kickstart file which points to devel repos. Using this switch we can switch to local/testing repos
-  if [[ "$#" -eq 1 && $1 == "local" ]]; then
-    HA_REPO="repo --name=adaptation-community-$DEVICE-@RELEASE@"
-    sed -i -e "s|^$HA_REPO.*$|$HA_REPO --baseurl=file://$ANDROID_ROOT/droid-local-repo/$DEVICE|" $ANDROID_ROOT/tmp/$KS
-  elif [[ "$#" -eq 1  && $1 == "release" ]]; then
-    #Adding our OBS repo
-    sed -i -e "s/nemo\:\/devel/nemo\:\/testing/g" $ANDROID_ROOT/tmp/$KS
-    sed -i -e "s/sailfish_latest_@ARCH@\//sailfishos_@RELEASE@\//g" $ANDROID_ROOT/tmp/$KS
+  #By default we make the kickstart file point to devel repos.
+  HA_REPO="repo --name=adaptation-community-$DEVICE-@RELEASE@"
+  HA_REPO_COMMON="repo --name=adaptation-community-common-$DEVICE-@RELEASE@"
+  if ! grep -q "$HA_REPO" $KS_PATH; then
+    echo "Adding devel repo to the kick start"
+    sed -i -e "s|^$HA_REPO_COMMON|$HA_REPO --baseurl=http://repo.merproject.org/obs/nemo:/devel:/hw:/$VENDOR:/$DEVICE/sailfish_latest_@ARCH@/\n$HA_REPO_COMMON|" $KS_PATH
   fi
 
-  sed -i -e "s|@Jolla Configuration $DEVICE|@Jolla Configuration $DEVICE\njolla-email\nsailfish-weather\njolla-calculator\njolla-notes\njolla-calendar\nsailfish-office\nharbour-poor-maps|"  $ANDROID_ROOT/tmp/$KS
+  #Using this switch we can switch to local/testing repos
+  if [[ "$#" -eq 1 && $1 == "local" ]]; then
+    sed -i -e "s|^$HA_REPO.*$|$HA_REPO --baseurl=file://$ANDROID_ROOT/droid-local-repo/$DEVICE|" $KS_PATH
+  elif [[ "$#" -eq 1  && $1 == "release" ]]; then
+    #Adding our OBS repo
+    sed -i -e "s/nemo\:\/devel/nemo\:\/testing/g" $KS_PATH
+    sed -i -e "s/sailfish_latest_@ARCH@\//sailfishos_@RELEASE@\//g" $KS_PATH
+  fi
+
+  sed -i -e "s|@Jolla Configuration $DEVICE|@Jolla Configuration $DEVICE\njolla-email\nsailfish-weather\njolla-calculator\njolla-notes\njolla-calendar\nsailfish-office\nharbour-poor-maps|"  $KS_PATH
 
   #Hacky workaround for droid-hal-init starting before /system partition is mounted
-  #sed -i '/%post$/a sed -i \"s;WantedBy;RequiredBy;g\"  \/lib\/systemd\/system\/system.mount' $ANDROID_ROOT/tmp/$KS
-  #sed -i '/%post$/a echo \"RequiredBy=droid-hal-init.service\" >> \/lib\/systemd\/system\/local-fs.target' $ANDROID_ROOT/tmp/$KS
-  #sed -i '/%post$/a echo \"[Install]\" >> \/lib\/systemd\/system\/local-fs.target' $ANDROID_ROOT/tmp/$KS
+  #sed -i '/%post$/a sed -i \"s;WantedBy;RequiredBy;g\"  \/lib\/systemd\/system\/system.mount' $KS_PATH
+  #sed -i '/%post$/a echo \"RequiredBy=droid-hal-init.service\" >> \/lib\/systemd\/system\/local-fs.target' $KS_PATH
+  #sed -i '/%post$/a echo \"[Install]\" >> \/lib\/systemd\/system\/local-fs.target' $KS_PATH
 
   popd
 }
