@@ -15,7 +15,7 @@ ln -s $SCRIPTPATH/.mersdkubu.profile ~/.mersdkubu.profile
 source ~/.hadk.env
 
 mkdir -p $MER_TMPDIR
-#mkdir -p $ANDROID_ROOT/.repo/local_manifests
+mkdir -p $ANDROID_ROOT/.repo/local_manifests
 cp $SCRIPTPATH/cancro_local_manifest.xml $ANDROID_ROOT/.repo/local_manifests/cancro.xml
 
 #Download Setup MER SDK
@@ -35,7 +35,7 @@ echo "alias sfossdk=$SDK_ROOT/mer-sdk-chroot" >> ~/.bashrc
 
 cd $HOME
 
-sudo chroot $SDK_ROOT sudo zypper in -t pattern Mer-SB2-armv7hl
+sudo chroot $SDK_ROOT sudo zypper in -t pattern Mer-SB2-armv7hl android-tools createrepo zip
 
 echo "SailfishOS Platform SDK setup complete. You can start Sailfish OS SDK by simply typing sfossdk on your bash shell. Good Luck!"
 exec bash
