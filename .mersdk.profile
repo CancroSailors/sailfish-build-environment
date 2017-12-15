@@ -53,29 +53,8 @@ function setup_scratchbox {
   mkdir -p $MER_TMPDIR
   pushd $MER_TMPDIR
 
-  SFE_SB2_TARGET=$MER_ROOT/targets/$VENDOR-$DEVICE-$PORT_ARCH
-  TARBALL_URL=http://releases.sailfishos.org/sdk/latest/targets/targets.json
-  TARBALL=$(curl $TARBALL_URL | grep "$PORT_ARCH.tar.bz2" | cut -d\" -f4 | grep $PORT_ARCH | head -n 1)
-
-  echo "Downloading: " $TARBALL
-  rm $(basename $TARBALL)
-  curl -k -O -C - $TARBALL || die "Error downloading scratchbox target"
-
-  sudo rm -rf $SFE_SB2_TARGET
-  sudo mkdir -p $SFE_SB2_TARGET
-  sudo tar --numeric-owner -pxjf $(basename $TARBALL) -C $SFE_SB2_TARGET
-
-  sudo chown -R $USER $SFE_SB2_TARGET
-
-  cd $SFE_SB2_TARGET
-  grep :$(id -u): /etc/passwd >> etc/passwd
-  grep :$(id -g): /etc/group >> etc/group
-
-  sb2-init -d -L "--sysroot=/" -C "--sysroot=/" -c /usr/bin/qemu-arm-dynamic -m sdk-build -n -N -t / $VENDOR-$DEVICE-$PORT_ARCH /opt/cross/bin/$PORT_ARCH-meego-linux-gnueabi-gcc
-
-  sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -m sdk-install -R rpm --rebuilddb || die "Error rebuilding rpm database"
-  sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -m sdk-install -R zypper ar -G http://repo.merproject.org/releases/mer-tools/rolling/builds/$PORT_ARCH/packages/ mer-tools-rolling || die "Error installing packages"
-  sb2 -t $VENDOR-$DEVICE-$PORT_ARCH -m sdk-install -R zypper ref --force || die "Error refreshing repos"
+  sdk-assistant create SailfishOS-latest http://releases.sailfishos.org/sdk/latest/Jolla-latest-Sailfish_SDK_Tooling-i486.tar.bz2
+  sdk-assistant create $VENDOR-$DEVICE-$PORT_$ARCH http://releases.sailfishos.org/sdk/latest/Jolla-latest-Sailfish_SDK_Target-armv7hl.tar.bz2
 
   popd
 }
