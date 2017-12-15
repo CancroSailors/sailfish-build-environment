@@ -282,10 +282,14 @@ function setup_obsenv {
   then
      sudo mkdir $OBS_ROOT
      sudo chown $USER $OBS_ROOT
+     pushd $OBS_ROOT
      echo ""
      echo " Make yourself familier with setting up .oscrc"
      echo " https://wiki.merproject.org/wiki/Building_against_Mer_in_Community_OBS#Setup_.oscrc"
      echo ""
+     osc -A https://api.merproject.org/ ls mer-tools:testing
+     osc co nemo:devel:hw:xiaomi:cancro
+     popd
   fi
 }
 
