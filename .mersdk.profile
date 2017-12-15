@@ -288,7 +288,7 @@ function setup_obsenv {
      echo " https://wiki.merproject.org/wiki/Building_against_Mer_in_Community_OBS#Setup_.oscrc"
      echo ""
      osc -A https://api.merproject.org/ ls mer-tools:testing
-     osc co nemo:devel:hw:xiaomi:cancro
+     osc co nemo:devel:hw:$VENDOR:$DEVICE
      popd
   fi
 }
