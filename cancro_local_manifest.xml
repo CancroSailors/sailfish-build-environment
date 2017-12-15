@@ -13,7 +13,7 @@
   <project name="CancroSailors/droid-hal-cancro" path="rpm/" remote="private" revision="master" />
 
   <remove-project name="sailfishos/droidmedia" />
-  <project path="external/droidmedia" name="kimmoli/droidmedia" revision="master" />
+  <project path="external/droidmedia" name="CancroSailors/droidmedia" revision="master" />
 
   <remove-project name="mer-hybris/android_system_core" />
   <project path="system/core" name="CancroSailors/android_system_core" groups="pdk" revision="hybris-12.1" />
