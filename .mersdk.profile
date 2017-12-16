@@ -188,7 +188,7 @@ function build_gstdroid {
 function generate_kickstart {
   pushd $ANDROID_ROOT
 
-  hybris/droid-configs/droid-configs-device/helpers/process_patterns.sh
+  rpm/dhd/helpers/build_packages.sh --configs
 
   mkdir -p tmp
   KS="Jolla-@RELEASE@-$DEVICE-@ARCH@.ks"
