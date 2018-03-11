@@ -35,7 +35,7 @@ echo "alias sfossdk=$SDK_ROOT/mer-sdk-chroot" >> ~/.bashrc
 
 cd $HOME
 
-sudo chroot $SDK_ROOT sudo zypper in -t pattern Mer-SB2-armv7hl android-tools createrepo zip
+sudo chroot $SDK_ROOT sudo zypper in patterns-sailfish-sb2-armv7hl android-tools createrepo zip
 
 echo "SailfishOS Platform SDK setup complete. You can start Sailfish OS SDK by simply typing sfossdk on your bash shell. Good Luck!"
 exec bash
