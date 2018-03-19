@@ -194,7 +194,11 @@ function generate_kickstart {
   KS="Jolla-@RELEASE@-$DEVICE-@ARCH@.ks"
   KS_PATH=$ANDROID_ROOT/tmp/$KS
 
-  cp $ANDROID_ROOT/hybris/droid-configs/installroot/usr/share/kickstarts/$KS $KS_PATH
+  pushd tmp
+  rpm2cpio $ANDROID_ROOT/droid-local-repo/$DEVICE/droid-configs/droid-config-$DEVICE-ssu-kickstarts-1-1.armv7hl.rpm | cpio -idmv
+  popd tmp
+
+  cp $ANDROID_ROOT/tmp/usr/share/kickstarts/$KS $KS_PATH
 
   #By default we make the kickstart file point to devel repos.
   HA_REPO="repo --name=adaptation-community-$DEVICE-@RELEASE@"
